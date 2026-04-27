@@ -18,7 +18,11 @@ class AccountEntryResource extends JsonResource
             'amount'      => $this->amount,
             'description' => $this->description,
             'entry_date'  => $this->entry_date?->toDateString(), // date only (YYYY-MM-DD)
+            'created_by'  => $this->created_by,
             'created_at'  => $this->created_at?->toIso8601String(),
+
+            // Relationships — only present when eager-loaded.
+            'pharmacy' => new PharmacyResource($this->whenLoaded('pharmacy')),
         ];
     }
 }
