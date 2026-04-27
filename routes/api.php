@@ -5,6 +5,7 @@ use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\V1;
 
+// Note on namespace: the folder is Api/ but the namespace is API\ (legacy).
 // ─────────────────────────────────────────────────────────────────────────────
 //  Auth (public — no middleware)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,7 +35,10 @@ Route::prefix('v1')->middleware('auth:api')->group(function () {
 
     // Pharmacies
     Route::get('pharmacies',                        [V1\PharmacyController::class, 'index']);
-    Route::get('pharmacies/{pharmacy}/statement',   [V1\PharmacyController::class, 'statement']);
+    Route::get('pharmacies/{pharmacy}/statement',   [V1\StatementController::class, 'show']);
+
+    // Stock
+    Route::get('products/{product}/stock',          [V1\StockController::class, 'show']);
 
     // Orders
     Route::get('orders',                    [V1\OrderController::class, 'index']);
