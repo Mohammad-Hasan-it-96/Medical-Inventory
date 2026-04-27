@@ -22,14 +22,13 @@ return new class extends Migration
                   ->constrained('orders')
                   ->nullOnDelete();
 
-            $table->foreignId('payment_id')
-                  ->nullable()
-                  ->constrained('payments')
-                  ->nullOnDelete();
+            // payment_id is a soft reference only — no FK constraint since the payments
+            // table may not exist yet and financial history must survive payment deletion.
+            $table->unsignedBigInteger('payment_id')->nullable();
 
             $table->enum('type', ['debit', 'credit'])->index(); // debit = owes us, credit = we owe / received
             $table->decimal('amount', 15, 2);
-            $table->text('description')->nullable();
+            $table->string('description')->nullable();
             $table->date('entry_date')->index();
 
             // Preserve ledger history after a user account is removed.

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('order_number')->unique(); // human-readable reference
+            $table->string('order_number')->unique()->nullable(); // human-readable reference, auto-generated after creation
 
             // Prevent hard-deleting a pharmacy that has orders (use soft-delete instead).
             $table->foreignId('pharmacy_id')
