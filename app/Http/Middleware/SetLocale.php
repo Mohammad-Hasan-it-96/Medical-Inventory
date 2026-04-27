@@ -21,26 +21,31 @@ class SetLocale
         // Get locale from session
         $locale = session('locale');
 
-        if ($locale) {
-            // Check if the language exists and is active
-            $language = Language::where('code', $locale)
-                ->where('status', 1)
-                ->first();
+        try {
+            if ($locale) {
+                // Check if the language exists and is active
+                $language = Language::where('code', $locale)
+                    ->where('status', 1)
+                    ->first();
 
-            if ($language) {
-                App::setLocale($locale);
-                session(['site_direction' => $language->direction]);
-            }
-        } else {
-            // If no locale in session, use default language
-            $defaultLanguage = Language::where('is_default', 1)->first();
+                if ($language) {
+                    App::setLocale($locale);
+                    session(['site_direction' => $language->direction]);
+                }
+            } else {
+                // If no locale in session, use default language
+                $defaultLanguage = Language::where('is_default', 1)->first();
 
-            if ($defaultLanguage) {
-                $locale = $defaultLanguage->code;
-                App::setLocale($locale);
-                session(['locale' => $locale]);
-                session(['site_direction' => $defaultLanguage->direction]);
+                if ($defaultLanguage) {
+                    $locale = $defaultLanguage->code;
+                    App::setLocale($locale);
+                    session(['locale' => $locale]);
+                    session(['site_direction' => $defaultLanguage->direction]);
+                }
             }
+        } catch (\Throwable $e) {
+            // DB may be unavailable (e.g. during tests before migrations run).
+            // Fall back to the app default locale silently.
         }
 
         return $next($request);
