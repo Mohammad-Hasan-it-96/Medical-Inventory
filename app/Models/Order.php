@@ -11,6 +11,12 @@ class Order extends Model
 {
     use HasFactory, SoftDeletes;
 
+    // ─── Status constants ──────────────────────────────────────────────────────
+    const STATUS_DRAFT     = 'draft';
+    const STATUS_PENDING   = 'pending';
+    const STATUS_CONFIRMED = 'confirmed';
+    const STATUS_CANCELLED = 'cancelled';
+
     protected $fillable = [
         'order_number',
         'pharmacy_id',
@@ -74,4 +80,3 @@ class Order extends Model
         return $query->whereBetween('created_at', [$from, $to]);
     }
 }
-
