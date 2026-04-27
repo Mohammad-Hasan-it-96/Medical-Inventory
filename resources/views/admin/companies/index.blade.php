@@ -22,7 +22,7 @@
             <form action="{{ route('admin.companies.index') }}" method="GET" class="row g-2 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('search') }}</label>
-                    <input type="text" name="search" class="form-control form-control-sm" value="{{ request('search') }}" placeholder="Name or phone…">
+                    <input type="text" name="search" class="form-control form-control-sm" value="{{ request('search') }}" placeholder="{{ __('admin.placeholder_name_phone') }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('status') }}</label>

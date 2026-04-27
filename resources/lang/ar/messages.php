@@ -1,51 +1,42 @@
 <?php
 
-return array (
-  'Edit Profile' => 'Edit Profile',
-  'Click the camera icon to change your profile picture' => 'Click the camera icon to change your profile picture',
-  'Full Name' => 'Full Name',
-  'Email Address' => 'Email Address',
-  'New Password' => 'New Password',
-  'Confirm Password' => 'Confirm Password',
-  'Update Profile' => 'Update Profile',
-  'Cancel' => 'Cancel',
-  'Signed in as' => 'Signed in as',
-  'Profile' => 'Profile',
-  'Logout' => 'Logout',
-  'Admin' => 'Admin',
-  'Main' => 'Main',
-  'dashboard' => 'Dashboard',
-  'Products' => 'Products',
-  'Users' => 'Users',
-  'Languages' => 'Languages',
-  'Account' => 'Account',
-  'Settings' => 'Settings',
-  'New
-                                    Password' => 'New
-                                    Password',
-  'Add New' => 'Add New',
-  'List' => 'List',
-  'Login' => 'Login',
-  'Dashboard' => 'Dashboard',
-  'User' => 'User',
-  'app.delete' => 'App.delete',
-  'Email
-                                    Address' => 'Email
-                                    Address',
-  'app.cancel' => 'App.cancel',
-  'Moderator' => 'Moderator',
-  'app.delete_confirmation' => 'App.delete confirmation',
-  'app.save' => 'App.save',
-  'Edit User' => 'Edit User',
-  'create_account' => 'Create account',
-  'dont_have_account' => 'Dont have account',
-  'sign_in' => 'Sign in',
-  'Import Products' => 'Import Products',
-  'moderator' => 'Moderator',
-  'upload_and_import' => 'Upload and import',
-  'processing' => 'Processing',
-  'in_stock' => 'In stock',
-  'completed' => 'Completed',
-  123 => '123',
-  'reset_password' => 'Reset password',
-);
+/**
+ * رسائل الإشعارات / الأخطاء / التغذية الراجعة.
+ * الاستخدام: __('messages.key') أو __('messages.key', ['param' => $value])
+ */
+return [
+    // ── CRUD عام ─────────────────────────────────────────────────────────────
+    'created_successfully' => 'تم إنشاء :resource بنجاح.',
+    'updated_successfully' => 'تم تحديث :resource بنجاح.',
+    'deleted_successfully' => 'تم حذف :resource بنجاح.',
+
+    // ── الشركات ──────────────────────────────────────────────────────────────
+    'company_created' => 'تم إنشاء الشركة بنجاح.',
+    'company_updated' => 'تم تحديث الشركة بنجاح.',
+    'company_deleted' => 'تم حذف الشركة بنجاح.',
+
+    // ── الصيدليات ────────────────────────────────────────────────────────────
+    'pharmacy_created' => 'تم إنشاء الصيدلية بنجاح.',
+    'pharmacy_updated' => 'تم تحديث الصيدلية بنجاح.',
+    'pharmacy_deleted' => 'تم حذف الصيدلية بنجاح.',
+
+    // ── المنتجات ─────────────────────────────────────────────────────────────
+    'product_created' => 'تم إنشاء المنتج بنجاح.',
+    'product_updated' => 'تم تحديث المنتج بنجاح.',
+    'product_deleted' => 'تم حذف المنتج بنجاح.',
+
+    // ── الاستيراد ────────────────────────────────────────────────────────────
+    'import_success' => 'تم استيراد :count منتج بنجاح.',
+    'import_partial' => 'اكتمل الاستيراد مع وجود أخطاء. تم استيراد :count منتج.',
+    'import_error'   => 'خطأ في استيراد الملف: :error',
+
+    // ── المستخدمون ───────────────────────────────────────────────────────────
+    'user_created' => 'تم إنشاء المستخدم بنجاح.',
+    'user_updated' => 'تم تحديث المستخدم بنجاح.',
+    'user_deleted' => 'تم حذف المستخدم بنجاح.',
+
+    // ── إعدادات النظام ───────────────────────────────────────────────────────
+    'configs_updated' => 'تم تحديث الإعدادات بنجاح.',
+    'config_created'  => 'تم إنشاء الإعداد بنجاح.',
+    'config_deleted'  => 'تم حذف الإعداد بنجاح.',
+];

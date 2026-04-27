@@ -328,18 +328,18 @@ class ProductController extends Controller
             if (count($errors) > 0) {
                 return redirect()
                     ->route('admin.products.import')
-                    ->with('error', 'Import completed with errors. ' . $importCount . ' products imported.')
+                    ->with('error', __('messages.import_partial', ['count' => $importCount]))
                     ->with('import_errors', $errors);
             }
 
             return redirect()
                 ->route('admin.products.import')
-                ->with('success', 'Successfully imported ' . $importCount . ' products.');
+                ->with('success', __('messages.import_success', ['count' => $importCount]));
 
         } catch (\Exception $e) {
             return redirect()
                 ->route('admin.products.import')
-                ->with('error', 'Error importing file: ' . $e->getMessage());
+                ->with('error', __('messages.import_error', ['error' => $e->getMessage()]));
         }
     }
 }

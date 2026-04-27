@@ -1,50 +1,42 @@
 <?php
 
-return array (
-  'Signed in as' => 'Signed in as',
-  'Profile' => 'Profile',
-  'Logout' => 'Logout',
-  'Admin' => 'Admin',
-  'Main' => 'Main',
-  'dashboard' => 'Dashboard',
-  'Products' => 'Products',
-  'Users' => 'Users',
-  'Languages' => 'Languages',
-  'Account' => 'Account',
-  'Settings' => 'Settings',
-  'app.delete' => 'App.delete',
-  'Cancel' => 'Cancel',
-  'Update Profile' => 'Update Profile',
-  'Dashboard' => 'Dashboard',
-  'Add New' => 'Add New',
-  'List' => 'List',
-  'app.cancel' => 'App.cancel',
-  'app.delete_confirmation' => 'App.delete confirmation',
-  'app.are_you_sure' => 'App.are you sure',
-  'app.save' => 'App.save',
-  'Moderator' => 'Moderator',
-  'User' => 'User',
-  'Login' => 'Login',
-  'Import Products' => 'Import Products',
-  'logout' => 'Logout',
-  'settings' => 'Settings',
-  'account' => 'Account',
-  'user' => 'User',
-  'moderator' => 'Moderator',
-  'app_name' => 'App name',
-  'admin' => 'Admin',
-  'app.confirm_delete' => 'App.confirm delete',
-  'processing' => 'Processing',
-  'cancel' => 'Cancel',
-  'in_stock' => 'In stock',
-  'save_product' => 'Save product',
-  'actions' => 'Actions',
-  'delete' => 'Delete',
-  'Confirm Password' => 'Confirm Password',
-  'create_account' => 'Create account',
-  'dont_have_account' => 'Dont have account',
-  'created_by' => 'Created by',
-  'go_back' => 'Go back',
-  'go_to_dashboard' => 'Go to dashboard',
-  'page_might_be_removed' => 'Page might be removed',
-);
+/**
+ * Flash / toast / feedback messages.
+ * Usage: __('messages.key') or __('messages.key', ['param' => $value])
+ */
+return [
+    // ── Generic CRUD ─────────────────────────────────────────────────────────
+    'created_successfully' => ':resource created successfully.',
+    'updated_successfully' => ':resource updated successfully.',
+    'deleted_successfully' => ':resource deleted successfully.',
+
+    // ── Companies ────────────────────────────────────────────────────────────
+    'company_created' => 'Company created successfully.',
+    'company_updated' => 'Company updated successfully.',
+    'company_deleted' => 'Company deleted successfully.',
+
+    // ── Pharmacies ───────────────────────────────────────────────────────────
+    'pharmacy_created' => 'Pharmacy created successfully.',
+    'pharmacy_updated' => 'Pharmacy updated successfully.',
+    'pharmacy_deleted' => 'Pharmacy deleted successfully.',
+
+    // ── Products ─────────────────────────────────────────────────────────────
+    'product_created' => 'Product created successfully.',
+    'product_updated' => 'Product updated successfully.',
+    'product_deleted' => 'Product deleted successfully.',
+
+    // ── Import ───────────────────────────────────────────────────────────────
+    'import_success' => 'Successfully imported :count products.',
+    'import_partial' => 'Import completed with errors. :count products imported.',
+    'import_error'   => 'Error importing file: :error',
+
+    // ── Users ────────────────────────────────────────────────────────────────
+    'user_created' => 'User created successfully.',
+    'user_updated' => 'User updated successfully.',
+    'user_deleted' => 'User deleted successfully.',
+
+    // ── System configs ───────────────────────────────────────────────────────
+    'configs_updated' => 'Configurations updated successfully.',
+    'config_created'  => 'Configuration created successfully.',
+    'config_deleted'  => 'Configuration deleted successfully.',
+];

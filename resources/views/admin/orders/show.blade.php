@@ -1,12 +1,12 @@
 ﻿@extends('layouts.app')
-@section('title', 'Order #' . $order->order_number)
+@section('title', __('admin.order_title', ['number' => $order->order_number]))
 @section('content')
 <div class="container-fluid">
     <div class="d-flex align-items-center gap-2 mb-4">
         <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i></a>
-        <h3 class="mb-0"><i class="bi bi-receipt me-2"></i>Order #{{ $order->order_number }}</h3>
+        <h3 class="mb-0"><i class="bi bi-receipt me-2"></i>{{ __('admin.order_title', ['number' => $order->order_number]) }}</h3>
         @php $sc = ['pending'=>'warning','confirmed'=>'success','cancelled'=>'danger']; @endphp
-        <span class="badge bg-{{ $sc[$order->status] ?? 'secondary' }} ms-2">{{ ucfirst($order->status) }}</span>
+        <span class="badge bg-{{ $sc[$order->status] ?? 'secondary' }} ms-2">{{ __('admin.order_status.' . $order->status) }}</span>
     </div>
     <div class="row g-4">
         <div class="col-md-5">
@@ -27,11 +27,11 @@
                         <dt class="col-5">{{ \App\Helpers\Helpers::translate('created_at') }}</dt>
                         <dd class="col-7">{{ $order->created_at?->format('Y-m-d H:i') }}</dd>
                         @if($order->confirmed_at)
-                        <dt class="col-5">Confirmed at</dt>
+                        <dt class="col-5">{{ __('admin.confirmed_at') }}</dt>
                         <dd class="col-7">{{ $order->confirmed_at->format('Y-m-d H:i') }}</dd>
                         @endif
                         @if($order->cancelled_at)
-                        <dt class="col-5">Cancelled at</dt>
+                        <dt class="col-5">{{ __('admin.cancelled_at') }}</dt>
                         <dd class="col-7">{{ $order->cancelled_at->format('Y-m-d H:i') }}</dd>
                         @endif
                         @if($order->notes)
@@ -67,7 +67,7 @@
                                     <td class="text-end pe-3 fw-medium">{{ number_format($item->total, 2) }}</td>
                                 </tr>
                                 @empty
-                                <tr><td colspan="5" class="text-center py-3 text-muted">No items</td></tr>
+                                <tr><td colspan="5" class="text-center py-3 text-muted">{{ __('admin.no_items') }}</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

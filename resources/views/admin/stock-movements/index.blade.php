@@ -22,7 +22,7 @@
                     <select name="type" class="form-select form-select-sm">
                         <option value="">{{ \App\Helpers\Helpers::translate('all') }}</option>
                         @foreach($types as $t)
-                            <option value="{{ $t }}" {{ request('type')===$t?'selected':'' }}>{{ ucfirst($t) }}</option>
+                            <option value="{{ $t }}" {{ request('type')===$t?'selected':'' }}>{{ __('admin.stock_type.' . $t, [], null) !== 'admin.stock_type.' . $t ? __('admin.stock_type.' . $t) : ucfirst($t) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -63,7 +63,7 @@
                             <td>{{ $m->product?->name ?? '-' }}</td>
                             <td>
                                 <span class="badge bg-{{ $m->type === 'in' ? 'success' : ($m->type === 'out' ? 'danger' : 'secondary') }}">
-                                    {{ ucfirst($m->type) }}
+                                    {{ __('admin.stock_type.' . $m->type) }}
                                 </span>
                             </td>
                             <td class="fw-medium {{ $m->type === 'in' ? 'text-success' : 'text-danger' }}">

@@ -17,9 +17,9 @@
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('status') }}</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">{{ \App\Helpers\Helpers::translate('all') }}</option>
-                        <option value="pending"   {{ request('status')==='pending'?'selected':'' }}>Pending</option>
-                        <option value="confirmed" {{ request('status')==='confirmed'?'selected':'' }}>Confirmed</option>
-                        <option value="cancelled" {{ request('status')==='cancelled'?'selected':'' }}>Cancelled</option>
+                        <option value="pending"   {{ request('status')==='pending'?'selected':'' }}>{{ __('admin.order_status.pending') }}</option>
+                        <option value="confirmed" {{ request('status')==='confirmed'?'selected':'' }}>{{ __('admin.order_status.confirmed') }}</option>
+                        <option value="cancelled" {{ request('status')==='cancelled'?'selected':'' }}>{{ __('admin.order_status.cancelled') }}</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -81,7 +81,9 @@
                             <td>{{ number_format($order->total, 2) }}</td>
                             <td>
                                 @php $sc = ['pending'=>'warning','confirmed'=>'success','cancelled'=>'danger']; @endphp
-                                <span class="badge bg-{{ $sc[$order->status] ?? 'secondary' }}">{{ ucfirst($order->status) }}</span>
+                                <span class="badge bg-{{ $sc[$order->status] ?? 'secondary' }}">
+                                    {{ __('admin.order_status.' . $order->status) }}
+                                </span>
                             </td>
                             <td>{{ $order->created_at?->format('Y-m-d') }}</td>
                             <td class="text-end pe-4">

@@ -37,8 +37,19 @@ class PharmacyController extends Controller
         ]);
         $v['is_active'] = $request->boolean('is_active', true);
         Pharmacy::create($v);
-        return redirect()->route('admin.pharmacies.index')->with('success','Pharmacy created successfully.');
+        return redirect()->route('admin.pharmacies.index')->with('success', __('pharmacies.messages.created'));
     }
+    public function show(Pharmacy $pharmacy)
+    {
+        $pharmacy->loadCount('orders')
+                 ->loadSum('payments', 'amount');
+
+        $recentOrders   = $pharmacy->orders()->latest()->take(10)->get();
+        $recentPayments = $pharmacy->payments()->latest()->take(10)->get();
+
+        return view('admin.pharmacies.show', compact('pharmacy', 'recentOrders', 'recentPayments'));
+    }
+
     public function edit(Pharmacy $pharmacy)
     {
         $reps = User::where('role','rep')->orderBy('name')->get();
@@ -58,11 +69,11 @@ class PharmacyController extends Controller
         ]);
         $v['is_active'] = $request->boolean('is_active');
         $pharmacy->update($v);
-        return redirect()->route('admin.pharmacies.index')->with('success','Pharmacy updated successfully.');
+        return redirect()->route('admin.pharmacies.index')->with('success', __('pharmacies.messages.updated'));
     }
     public function destroy(Pharmacy $pharmacy)
     {
         $pharmacy->delete();
-        return redirect()->route('admin.pharmacies.index')->with('success','Pharmacy deleted successfully.');
+        return redirect()->route('admin.pharmacies.index')->with('success', __('pharmacies.messages.deleted'));
     }
 }
