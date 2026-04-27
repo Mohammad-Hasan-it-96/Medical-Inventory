@@ -19,9 +19,9 @@ class ProductResource extends JsonResource
             // Nested company — only present when relation is eager-loaded.
             'company' => new CompanyResource($this->whenLoaded('company')),
 
-            // Prices — only present when the `price` relation is eager-loaded.
-            'net_price_syp'    => $this->whenLoaded('price', fn () => $this->price?->net_price_syp),
-            'public_price_syp' => $this->whenLoaded('price', fn () => $this->price?->public_price_syp),
+            // Prices — only present when the `productPrice` relation is eager-loaded.
+            'net_price_syp'    => $this->whenLoaded('productPrice', fn () => $this->productPrice?->net_price_syp),
+            'public_price_syp' => $this->whenLoaded('productPrice', fn () => $this->productPrice?->public_price_syp),
 
             // current_stock is NOT calculated here to prevent N+1.
             // To include it, set a temporary attribute in the controller:

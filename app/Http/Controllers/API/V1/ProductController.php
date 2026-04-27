@@ -25,7 +25,7 @@ class ProductController extends BaseController
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Product::with(['company', 'price'])
+        $query = Product::with(['company', 'productPrice'])
             ->active();
 
         if ($search = $request->input('search')) {

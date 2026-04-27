@@ -47,7 +47,7 @@ class Product extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function price()
+    public function productPrice()
     {
         return $this->hasOne(ProductPrice::class);
     }
