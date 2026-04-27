@@ -34,9 +34,9 @@ class CompanyController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'      => 'required|string|max:255',
+            'name'      => 'required|string|max:255|unique:companies,name',
             'phone'     => 'nullable|string|max:50',
-            'address'   => 'nullable|string|max:500',
+            'address'   => 'nullable|string|max:255',
             'notes'     => 'nullable|string',
             'is_active' => 'boolean',
         ]);
@@ -46,7 +46,7 @@ class CompanyController extends Controller
         Company::create($validated);
 
         return redirect()->route('admin.companies.index')
-            ->with('success', 'Company created successfully.');
+            ->with('success', \App\Helpers\Helpers::translate('company_created'));
     }
 
     public function edit(Company $company)
@@ -57,9 +57,9 @@ class CompanyController extends Controller
     public function update(Request $request, Company $company)
     {
         $validated = $request->validate([
-            'name'      => 'required|string|max:255',
+            'name'      => 'required|string|max:255|unique:companies,name,' . $company->id,
             'phone'     => 'nullable|string|max:50',
-            'address'   => 'nullable|string|max:500',
+            'address'   => 'nullable|string|max:255',
             'notes'     => 'nullable|string',
             'is_active' => 'boolean',
         ]);
@@ -69,7 +69,7 @@ class CompanyController extends Controller
         $company->update($validated);
 
         return redirect()->route('admin.companies.index')
-            ->with('success', 'Company updated successfully.');
+            ->with('success', \App\Helpers\Helpers::translate('company_updated'));
     }
 
     public function destroy(Company $company)
@@ -77,7 +77,6 @@ class CompanyController extends Controller
         $company->delete();
 
         return redirect()->route('admin.companies.index')
-            ->with('success', 'Company deleted successfully.');
+            ->with('success', \App\Helpers\Helpers::translate('company_deleted'));
     }
 }
-
