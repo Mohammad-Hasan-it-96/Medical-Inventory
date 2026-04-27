@@ -13,11 +13,11 @@ Route::post('register', [RegisterController::class, 'register']);
 Route::post('login',    [RegisterController::class, 'login']);
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Legacy resource routes (kept for backwards compatibility)
+//  Legacy routes — apiResource omits Blade-only create/edit routes
 // ─────────────────────────────────────────────────────────────────────────────
 
 Route::middleware('auth:api')->group(function () {
-    Route::resource('products', ProductController::class);
+    Route::apiResource('products', ProductController::class);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
