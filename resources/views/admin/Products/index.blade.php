@@ -18,7 +18,7 @@
                     <li class="dropdown-header">{{\App\Helpers\Helpers::translate('export')}}</li>
                     <li>
                         <a class="dropdown-item" href="{{ route('admin.products.export') }}">
-                            <i class="bi bi-file-earmark-excel me-2"></i> 
+                            <i class="bi bi-file-earmark-excel me-2"></i>
                             @if(Auth::user()->role === 'admin')
                                 {{\App\Helpers\Helpers::translate('export_all_products')}}
                             @else
@@ -56,12 +56,14 @@
         </div>
     @endif
 
+    {{-- Filters --}}
     <div class="card shadow mb-4">
         <div class="card-header bg-light py-3">
             <h6 class="m-0 font-weight-bold">{{\App\Helpers\Helpers::translate('filter_options')}}</h6>
         </div>
         <div class="card-body">
             <form action="{{ route('admin.products.index') }}" method="GET" class="row g-3">
+                {{-- User filter --}}
                 <div class="col-md-4">
                     <label for="user_filter" class="form-label">{{\App\Helpers\Helpers::translate('filter_by_user')}}</label>
                     <select name="user_id" id="user_filter" class="form-select">
@@ -69,6 +71,18 @@
                         @foreach($users as $user)
                             <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
                                 {{ $user->name }} ({{\App\Helpers\Helpers::translate($user->role)}})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                {{-- Company filter --}}
+                <div class="col-md-4">
+                    <label for="company_filter" class="form-label">{{\App\Helpers\Helpers::translate('filter_by_company')}}</label>
+                    <select name="company_id" id="company_filter" class="form-select">
+                        <option value="">{{\App\Helpers\Helpers::translate('all_companies')}}</option>
+                        @foreach($companies as $company)
+                            <option value="{{ $company->id }}" {{ request('company_id') == $company->id ? 'selected' : '' }}>
+                                {{ $company->name }}
                             </option>
                         @endforeach
                     </select>
@@ -85,6 +99,7 @@
         </div>
     </div>
 
+    {{-- Products table --}}
     <div class="card shadow">
         <div class="card-body">
             <div class="table-responsive">
@@ -93,8 +108,10 @@
                         <tr>
                             <th class="ps-4">#</th>
                             <th>{{\App\Helpers\Helpers::translate('product')}}</th>
-                            <th>{{\App\Helpers\Helpers::translate('description')}}</th>
-                            <th>{{\App\Helpers\Helpers::translate('price')}}</th>
+                            <th>{{\App\Helpers\Helpers::translate('company')}}</th>
+                            <th>{{\App\Helpers\Helpers::translate('pharmaceutical_form')}}</th>
+                            <th>{{\App\Helpers\Helpers::translate('net_price_syp')}}</th>
+                            <th>{{\App\Helpers\Helpers::translate('public_price_syp')}}</th>
                             <th>{{\App\Helpers\Helpers::translate('stock')}}</th>
                             <th>{{\App\Helpers\Helpers::translate('created_by')}}</th>
                             <th class="text-end pe-4">{{\App\Helpers\Helpers::translate('actions')}}</th>
@@ -109,11 +126,26 @@
                                     <div class="bg-light rounded p-2">
                                         <i class="bi bi-box-seam text-primary fs-5"></i>
                                     </div>
-                                    <span>{{ $product->name }}</span>
+                                    <div>
+                                        <div>{{ $product->name }}</div>
+                                        <small class="text-muted">{{ Str::limit($product->details, 35) }}</small>
+                                    </div>
                                 </div>
                             </td>
-                            <td>{{ Str::limit($product->details, 40) }}</td>
-                            <td class="text-success fw-medium">${{ number_format($product->price, 2) }}</td>
+                            <td>{{ $product->company?->name ?? '—' }}</td>
+                            <td>
+                                @if($product->form)
+                                    <span class="badge bg-info text-dark">
+                                        {{ \App\Helpers\Helpers::translate('pharm_form_' . $product->form) !== 'pharm_form_' . $product->form
+                                            ? \App\Helpers\Helpers::translate('pharm_form_' . $product->form)
+                                            : $product->form }}
+                                    </span>
+                                @else
+                                    —
+                                @endif
+                            </td>
+                            <td class="text-end">{{ number_format($product->productPrice?->net_price_syp ?? 0, 2) }}</td>
+                            <td class="text-end">{{ number_format($product->productPrice?->public_price_syp ?? 0, 2) }}</td>
                             <td>
                                 <span class="badge bg-{{ $product->quantity > 10 ? 'success' : 'warning' }}">
                                     {{ $product->quantity }} {{\App\Helpers\Helpers::translate('in_stock')}}
@@ -132,7 +164,7 @@
                             </td>
                             <td class="text-end pe-4">
                                 <div class="d-flex gap-2 justify-content-end">
-                                    <a href="{{ route('admin.products.edit', $product->id) }}" 
+                                    <a href="{{ route('admin.products.edit', $product->id) }}"
                                        class="btn btn-sm btn-light rounded-circle p-2">
                                         <i class="bi bi-pencil-square text-primary"></i>
                                     </a>
@@ -148,14 +180,14 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
+                            <td colspan="9" class="text-center py-5 text-muted">
                                 <i class="bi bi-database-exclamation fs-1"></i>
                                 <p class="mt-3">{{\App\Helpers\Helpers::translate('no_products_found')}}</p>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -173,3 +205,4 @@
 }
 </style>
 @endsection
+

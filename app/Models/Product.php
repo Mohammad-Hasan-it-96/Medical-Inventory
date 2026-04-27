@@ -35,6 +35,18 @@ class Product extends Model
         ];
     }
 
+    // ─── Price helpers (delegates to productPrice relationship) ───────────────
+
+    public function getNetPriceSypAttribute(): float
+    {
+        return (float) ($this->productPrice?->net_price_syp ?? 0);
+    }
+
+    public function getPublicPriceSypAttribute(): float
+    {
+        return (float) ($this->productPrice?->public_price_syp ?? 0);
+    }
+
     // ─── Relationships ────────────────────────────────────────────────────────
 
     public function user()

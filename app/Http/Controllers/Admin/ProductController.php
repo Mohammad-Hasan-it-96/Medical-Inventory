@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Company;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -15,9 +18,8 @@ use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class ProductController extends Controller
 {
-    /**
-     * Check authorization via Gate and throw 403 on failure.
-     */
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+
     private function authorizeProductAction($product, string $action): void
     {
         if (! Gate::allows($action, $product)) {
@@ -27,33 +29,50 @@ class ProductController extends Controller
         }
     }
 
-    /**
-     * Display a listing of products (admin Blade view).
-     */
+    /** Validation rules shared by store & update. */
+    private function validationRules(): array
+    {
+        return [
+            'name'             => 'required|string|max:255',
+            'price'            => 'required|numeric|min:0',
+            'details'          => 'required|string',
+            'quantity'         => 'required|integer|min:0',
+            'company_id'       => 'nullable|exists:companies,id',
+            'form'             => 'nullable|string|max:100',
+            'net_price_syp'    => 'required|numeric|min:0',
+            'public_price_syp' => 'required|numeric|min:0',
+        ];
+    }
+
+    // ─── Index ────────────────────────────────────────────────────────────────
+
     public function index(Request $request)
     {
-        $userId   = $request->input('user_id');
-        $query    = Product::with('user');
+        $query = Product::with(['user', 'company', 'productPrice']);
 
-        if ($userId) {
+        if ($userId = $request->input('user_id')) {
             $query->where('user_id', $userId);
         }
 
-        $products = $query->get();
-        $users    = User::all();
+        if ($companyId = $request->input('company_id')) {
+            $query->where('company_id', $companyId);
+        }
 
-        return view('admin.products.index', compact('products', 'users'));
+        $products  = $query->get();
+        $users     = User::all();
+        $companies = Company::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.products.index', compact('products', 'users', 'companies'));
     }
 
-    /**
-     * Export products to Excel (.xlsx) download.
-     */
+    // ─── Export ───────────────────────────────────────────────────────────────
+
     public function export(Request $request)
     {
         $userId      = $request->input('user_id');
         $currentUser = Auth::user();
 
-        $query = Product::with('user');
+        $query = Product::with(['user', 'company', 'productPrice']);
 
         if ($currentUser->role === 'moderator') {
             $query->where('user_id', $currentUser->id);
@@ -65,14 +84,15 @@ class ProductController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
 
-        $sheet->setCellValue('A1', 'ID');
-        $sheet->setCellValue('B1', 'Name');
-        $sheet->setCellValue('C1', 'Price');
-        $sheet->setCellValue('D1', 'Details');
-        $sheet->setCellValue('E1', 'Quantity');
-        $sheet->setCellValue('F1', 'Created By');
-        $sheet->setCellValue('G1', 'Created At');
-        $sheet->getStyle('A1:G1')->getFont()->setBold(true);
+        // Headers
+        $headers = ['ID', 'Name', 'Price', 'Details', 'Quantity',
+                    'Company', 'Form', 'Net Price SYP', 'Public Price SYP',
+                    'Created By', 'Created At'];
+        foreach ($headers as $i => $header) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue($col . '1', $header);
+        }
+        $sheet->getStyle('A1:K1')->getFont()->setBold(true);
 
         $row = 2;
         foreach ($products as $product) {
@@ -81,13 +101,17 @@ class ProductController extends Controller
             $sheet->setCellValue('C' . $row, $product->price);
             $sheet->setCellValue('D' . $row, $product->details);
             $sheet->setCellValue('E' . $row, $product->quantity);
-            $sheet->setCellValue('F' . $row, $product->user->name ?? 'Unknown');
-            $sheet->setCellValue('G' . $row, $product->created_at->format('Y-m-d H:i:s'));
+            $sheet->setCellValue('F' . $row, $product->company?->name ?? '');
+            $sheet->setCellValue('G' . $row, $product->form ?? '');
+            $sheet->setCellValue('H' . $row, $product->productPrice?->net_price_syp ?? 0);
+            $sheet->setCellValue('I' . $row, $product->productPrice?->public_price_syp ?? 0);
+            $sheet->setCellValue('J' . $row, $product->user?->name ?? 'Unknown');
+            $sheet->setCellValue('K' . $row, $product->created_at->format('Y-m-d H:i:s'));
             $row++;
         }
 
-        foreach (range('A', 'G') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
+        foreach (range('A', 'K') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
         $writer   = new Xlsx($spreadsheet);
@@ -100,75 +124,73 @@ class ProductController extends Controller
         ])->deleteFileAfterSend(true);
     }
 
-    /**
-     * Show the form to create a new product.
-     */
+    // ─── Create / Store ───────────────────────────────────────────────────────
+
     public function create()
     {
         $this->authorizeProductAction(Product::class, 'create');
 
-        return view('admin.products.create');
+        $companies = Company::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.products.create', compact('companies'));
     }
 
-    /**
-     * Store a newly created product.
-     */
     public function store(Request $request)
     {
         $this->authorizeProductAction(Product::class, 'create');
 
-        $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'price'    => 'required|numeric|min:0',
-            'details'  => 'required|string',
-            'quantity' => 'required|integer|min:0',
-        ]);
+        $validated = $request->validate($this->validationRules());
 
-        $product          = new Product($validated);
+        $product          = new Product(Arr::except($validated, ['net_price_syp', 'public_price_syp']));
         $product->user_id = Auth::id();
         $product->save();
 
+        $product->productPrice()->create([
+            'net_price_syp'    => $validated['net_price_syp'],
+            'public_price_syp' => $validated['public_price_syp'],
+        ]);
+
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'Product created successfully.');
+            ->with('success', \App\Helpers\Helpers::translate('product_created'));
     }
 
-    /**
-     * Show the form to edit an existing product.
-     */
+    // ─── Edit / Update ────────────────────────────────────────────────────────
+
     public function edit(int $id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('productPrice')->findOrFail($id);
         $this->authorizeProductAction($product, 'update');
 
-        return view('admin.products.edit', compact('product'));
+        $companies = Company::where('is_active', true)->orderBy('name')->get();
+
+        return view('admin.products.edit', compact('product', 'companies'));
     }
 
-    /**
-     * Update the specified product.
-     */
     public function update(Request $request, int $id)
     {
         $product = Product::findOrFail($id);
         $this->authorizeProductAction($product, 'update');
 
-        $validated = $request->validate([
-            'name'     => 'required|string|max:255',
-            'price'    => 'required|numeric|min:0',
-            'details'  => 'required|string',
-            'quantity' => 'required|integer|min:0',
-        ]);
+        $validated = $request->validate($this->validationRules());
 
-        $product->update($validated);
+        $product->update(Arr::except($validated, ['net_price_syp', 'public_price_syp']));
+
+        $product->productPrice()->updateOrCreate(
+            ['product_id' => $product->id],
+            [
+                'net_price_syp'    => $validated['net_price_syp'],
+                'public_price_syp' => $validated['public_price_syp'],
+            ]
+        );
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'Product updated successfully.');
+            ->with('success', \App\Helpers\Helpers::translate('product_updated'));
     }
 
-    /**
-     * Delete the specified product.
-     */
+    // ─── Destroy ──────────────────────────────────────────────────────────────
+
     public function destroy(int $id)
     {
         $product = Product::findOrFail($id);
@@ -178,38 +200,40 @@ class ProductController extends Controller
 
         return redirect()
             ->route('admin.products.index')
-            ->with('success', 'Product deleted successfully.');
+            ->with('success', \App\Helpers\Helpers::translate('product_deleted'));
     }
 
-    /**
-     * Show the import form.
-     */
+    // ─── Import ───────────────────────────────────────────────────────────────
+
     public function import()
     {
         return view('admin.products.import');
     }
 
-    /**
-     * Download a blank Excel import template.
-     */
     public function downloadTemplate()
     {
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
 
-        $sheet->setCellValue('A1', 'Name');
-        $sheet->setCellValue('B1', 'Price');
-        $sheet->setCellValue('C1', 'Details');
-        $sheet->setCellValue('D1', 'Quantity');
-        $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+        // Headers — columns A-H
+        $headers = ['Name', 'Price', 'Details', 'Quantity',
+                    'Company', 'Form', 'Net Price SYP', 'Public Price SYP'];
+        foreach ($headers as $i => $header) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue($col . '1', $header);
+        }
+        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
 
-        $sheet->setCellValue('A2', 'Example Product');
-        $sheet->setCellValue('B2', '99.99');
-        $sheet->setCellValue('C2', 'This is a sample product description.');
-        $sheet->setCellValue('D2', '10');
+        // Example row
+        $example = ['Amoxicillin 500mg', '2500', 'Antibiotic capsules', '100',
+                    'Pharma Co', 'Capsule', '2000', '2500'];
+        foreach ($example as $i => $val) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue($col . '2', $val);
+        }
 
-        foreach (range('A', 'D') as $column) {
-            $sheet->getColumnDimension($column)->setAutoSize(true);
+        foreach (range('A', 'H') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
         $writer   = new Xlsx($spreadsheet);
@@ -222,9 +246,6 @@ class ProductController extends Controller
         ])->deleteFileAfterSend(true);
     }
 
-    /**
-     * Process the uploaded Excel file and import products.
-     */
     public function processImport(Request $request)
     {
         $request->validate([
@@ -242,12 +263,14 @@ class ProductController extends Controller
             $errors      = [];
 
             foreach ($rows as $index => $row) {
+                // Skip fully empty rows (backward compat: old files only have 4 cols)
                 if (empty($row[0]) && empty($row[1]) && empty($row[2]) && empty($row[3])) {
                     continue;
                 }
 
                 $rowNumber = $index + 2;
 
+                // ── Required legacy columns ────────────────────────────────
                 if (empty($row[0])) {
                     $errors[] = "Row {$rowNumber}: Name is required";
                     continue;
@@ -260,19 +283,44 @@ class ProductController extends Controller
                     $errors[] = "Row {$rowNumber}: Details are required";
                     continue;
                 }
-                if (! is_numeric($row[3]) || $row[3] < 0 || ! is_int((int) $row[3])) {
+                if (! is_numeric($row[3]) || $row[3] < 0) {
                     $errors[] = "Row {$rowNumber}: Quantity must be a positive integer";
                     continue;
                 }
 
-                $product          = new Product([
-                    'name'     => $row[0],
-                    'price'    => $row[1],
-                    'details'  => $row[2],
-                    'quantity' => (int) $row[3],
+                // ── Resolve optional company (col E = index 4) ────────────
+                $companyId = null;
+                if (! empty($row[4])) {
+                    $companyName = trim($row[4]);
+                    $company     = Company::firstOrCreate(
+                        ['name' => $companyName],
+                        ['is_active' => true]
+                    );
+                    $companyId = $company->id;
+                }
+
+                // ── Optional new columns ───────────────────────────────────
+                $form           = isset($row[5]) && ! empty($row[5]) ? trim($row[5]) : null;
+                $netPriceSyp    = isset($row[6]) && is_numeric($row[6]) ? (float) $row[6] : 0;
+                $publicPriceSyp = isset($row[7]) && is_numeric($row[7]) ? (float) $row[7] : 0;
+
+                // ── Create product ─────────────────────────────────────────
+                $product = new Product([
+                    'name'       => $row[0],
+                    'price'      => $row[1],
+                    'details'    => $row[2],
+                    'quantity'   => (int) $row[3],
+                    'company_id' => $companyId,
+                    'form'       => $form,
                 ]);
                 $product->user_id = Auth::id();
                 $product->save();
+
+                // ── Create price record ────────────────────────────────────
+                $product->productPrice()->create([
+                    'net_price_syp'    => $netPriceSyp,
+                    'public_price_syp' => $publicPriceSyp,
+                ]);
 
                 $importCount++;
             }
