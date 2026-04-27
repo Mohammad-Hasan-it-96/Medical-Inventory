@@ -68,15 +68,14 @@
                     {{-- Pharmaceutical form --}}
                     <div class="col-md-6">
                         <label for="form" class="form-label">{{\App\Helpers\Helpers::translate('pharmaceutical_form')}}</label>
-                        <input list="form-suggestions"
-                               class="form-control @error('form') is-invalid @enderror"
-                               id="form" name="form" value="{{ old('form', $product->form) }}"
-                               placeholder="{{ \App\Helpers\Helpers::translate('pharmaceutical_form') }}">
-                        <datalist id="form-suggestions">
-                            @foreach(['tablet','capsule','syrup','injection','cream','ointment','drops','suppository','powder','gel'] as $f)
-                                <option value="{{ $f }}">{{\App\Helpers\Helpers::translate('pharm_form_' . $f)}}</option>
+                        <select class="form-select @error('form') is-invalid @enderror" id="form" name="form">
+                            <option value="">— {{\App\Helpers\Helpers::translate('none')}} —</option>
+                            @foreach(['tablet','capsule','syrup','injection','cream','ointment','drops','spray','powder','gel','solution','suspension','other'] as $f)
+                                <option value="{{ $f }}" {{ old('form', $product->form) === $f ? 'selected' : '' }}>
+                                    {{\App\Helpers\Helpers::translate('pharm_form_' . $f)}}
+                                </option>
                             @endforeach
-                        </datalist>
+                        </select>
                         @error('form')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 

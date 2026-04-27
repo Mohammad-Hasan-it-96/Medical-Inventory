@@ -38,7 +38,7 @@ class ProductController extends Controller
             'details'          => 'required|string',
             'quantity'         => 'required|integer|min:0',
             'company_id'       => 'nullable|exists:companies,id',
-            'form'             => 'nullable|string|max:100',
+            'form'             => 'nullable|in:tablet,capsule,syrup,injection,cream,ointment,drops,spray,powder,gel,solution,suspension,other',
             'net_price_syp'    => 'required|numeric|min:0',
             'public_price_syp' => 'required|numeric|min:0',
         ];
