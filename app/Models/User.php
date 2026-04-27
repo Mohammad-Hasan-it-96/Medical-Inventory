@@ -73,10 +73,26 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the products for the user.
+     * Get the products created by this user.
      */
     public function products()
     {
         return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Pharmacies where this user is the assigned sales rep.
+     */
+    public function repPharmacies()
+    {
+        return $this->hasMany(Pharmacy::class, 'rep_id');
+    }
+
+    /**
+     * Orders placed / handled by this user as a sales rep.
+     */
+    public function repOrders()
+    {
+        return $this->hasMany(Order::class, 'rep_id');
     }
 }

@@ -2,64 +2,56 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Builder;
 
-class Product extends Model
+class Pharmacy extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'user_id',
-        'company_id',
         'name',
-        'barcode',
-        'unit',
-        'form',
-        'details',
-        'price',
-        'quantity',
-        'min_stock',
+        'phone',
+        'address',
+        'area',
+        'rep_id',
+        'credit_limit',
+        'opening_balance',
+        'notes',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'price'     => 'decimal:2',
-            'quantity'  => 'integer',
-            'min_stock' => 'integer',
-            'is_active' => 'boolean',
+            'credit_limit'    => 'decimal:2',
+            'opening_balance' => 'decimal:2',
+            'is_active'       => 'boolean',
         ];
     }
 
     // ─── Relationships ────────────────────────────────────────────────────────
 
-    public function user()
+    public function rep()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'rep_id');
     }
 
-    public function company()
+    public function orders()
     {
-        return $this->belongsTo(Company::class);
+        return $this->hasMany(Order::class);
     }
 
-    public function price()
+    public function payments()
     {
-        return $this->hasOne(ProductPrice::class);
+        return $this->hasMany(Payment::class);
     }
 
-    public function orderItems()
+    public function accountEntries()
     {
-        return $this->hasMany(OrderItem::class);
-    }
-
-    public function stockMovements()
-    {
-        return $this->hasMany(StockMovement::class);
+        return $this->hasMany(AccountEntry::class);
     }
 
     // ─── Scopes ───────────────────────────────────────────────────────────────
@@ -69,12 +61,18 @@ class Product extends Model
         return $query->where('is_active', true);
     }
 
+    public function scopeForRep(Builder $query, int $repId): Builder
+    {
+        return $query->where('rep_id', $repId);
+    }
+
     public function scopeSearch(Builder $query, string $term): Builder
     {
         return $query->where(function (Builder $q) use ($term) {
             $q->where('name', 'like', "%{$term}%")
-              ->orWhere('barcode', 'like', "%{$term}%")
-              ->orWhere('details', 'like', "%{$term}%");
+              ->orWhere('phone', 'like', "%{$term}%")
+              ->orWhere('area', 'like', "%{$term}%");
         });
     }
 }
+
