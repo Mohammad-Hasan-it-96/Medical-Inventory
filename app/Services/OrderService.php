@@ -5,7 +5,11 @@ namespace App\Services;
 use App\Models\AccountEntry;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Pharmacy;
+use App\Models\Product;
+use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
@@ -14,50 +18,79 @@ class OrderService
         protected StockService $stockService
     ) {}
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Create
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Create ───────────────────────────────────────────────────────────────
 
     /**
      * Create a new order with its line-items and calculated totals.
      *
-     * Expected $data keys:
-     *   pharmacy_id  (int)
-     *   items        (array of {product_id, quantity, unit_price, discount?})
-     *   discount     (float, optional) – order-level discount
-     *   rep_id       (int,   optional) – overridden by $repId parameter
-     *   notes        (string,optional)
-     *
      * Transaction flow:
-     *   1. Insert Order row (placeholder number, status = pending).
-     *   2. Update order_number to ORD-{year}-{5-digit-id} using the new ID.
-     *   3. Insert OrderItem rows, computing each line total.
-     *   4. calculateTotals() → update subtotal / total on the order.
+     *   1. Validate all input data (pharmacy, items, products, quantities).
+     *   2. Insert Order row (status = pending, temporary order_number).
+     *   3. Update order_number → ORD-{year}-{5-digit-id}.
+     *   4. Insert OrderItem rows, computing each line total.
+     *   5. calculateTotals() and persist subtotal / discount / total.
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function createOrder(array $data, ?int $repId = null): Order
     {
-        return DB::transaction(function () use ($data, $repId) {
+        // ── Validation ────────────────────────────────────────────────────────
+        $validator = Validator::make($data, [
+            'pharmacy_id'          => ['required', 'integer'],
+            'discount'             => ['nullable', 'numeric', 'min:0'],
+            'notes'                => ['nullable', 'string', 'max:1000'],
+            'items'                => ['required', 'array', 'min:1'],
+            'items.*.product_id'   => ['required', 'integer'],
+            'items.*.quantity'     => ['required', 'integer', 'min:1'],
+            'items.*.unit_price'   => ['required', 'numeric', 'min:0'],
+            'items.*.discount'     => ['nullable', 'numeric', 'min:0'],
+        ]);
 
-            // Step 1 – create the order with a temporary placeholder number.
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        $validated = $validator->validated();
+
+        // Pharmacy must exist.
+        if (! Pharmacy::where('id', $validated['pharmacy_id'])->exists()) {
+            $validator->errors()->add('pharmacy_id', 'The selected pharmacy does not exist.');
+            throw new ValidationException($validator);
+        }
+
+        // All products must exist — collect in one query for efficiency.
+        $productIds    = collect($validated['items'])->pluck('product_id')->unique()->values();
+        $foundProducts = Product::whereIn('id', $productIds)->pluck('id');
+        $missing       = $productIds->diff($foundProducts);
+
+        if ($missing->isNotEmpty()) {
+            $validator->errors()->add('items', 'Product(s) not found: ' . $missing->implode(', '));
+            throw new ValidationException($validator);
+        }
+
+        // ── Transaction ───────────────────────────────────────────────────────
+        return DB::transaction(function () use ($validated, $repId) {
+
+            // Step 1 — insert order with temporary number.
             $order = Order::create([
                 'order_number' => 'TEMP-' . uniqid(),
-                'pharmacy_id'  => $data['pharmacy_id'],
-                'rep_id'       => $repId ?? $data['rep_id'] ?? null,
-                'status'       => 'pending',
-                'discount'     => $data['discount'] ?? 0,
+                'pharmacy_id'  => $validated['pharmacy_id'],
+                'rep_id'       => $repId,
+                'status'       => Order::STATUS_PENDING,
+                'discount'     => $validated['discount'] ?? 0,
                 'subtotal'     => 0,
                 'total'        => 0,
-                'notes'        => $data['notes'] ?? null,
+                'notes'        => $validated['notes'] ?? null,
             ]);
 
-            // Step 2 – set the definitive order number now that we have the ID.
-            $order->order_number = 'ORD-' . date('Y') . '-' . str_pad($order->id, 5, '0', STR_PAD_LEFT);
+            // Step 2 — assign definitive order number.
+            $order->order_number = 'ORD-' . now()->year . '-' . str_pad($order->id, 5, '0', STR_PAD_LEFT);
             $order->save();
 
-            // Step 3 – insert line items.
-            foreach ($data['items'] as $item) {
+            // Step 3 — insert line items.
+            foreach ($validated['items'] as $item) {
                 $itemDiscount = $item['discount'] ?? 0;
-                $lineTotal    = ($item['quantity'] * $item['unit_price']) - $itemDiscount;
+                $lineTotal    = max(0, ($item['quantity'] * $item['unit_price']) - $itemDiscount);
 
                 OrderItem::create([
                     'order_id'   => $order->id,
@@ -65,11 +98,11 @@ class OrderService
                     'quantity'   => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'discount'   => $itemDiscount,
-                    'total'      => max(0, $lineTotal),
+                    'total'      => $lineTotal,
                 ]);
             }
 
-            // Step 4 – recalculate and persist order totals.
+            // Step 4 — recalculate and persist order totals.
             $totals = $this->calculateTotals($order->load('orderItems'));
             $order->update($totals);
 
@@ -77,23 +110,23 @@ class OrderService
         });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Confirm
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Confirm ──────────────────────────────────────────────────────────────
 
     /**
-     * Confirm a pending/draft order.
+     * Confirm a draft or pending order.
      *
      * Transaction flow:
-     *   1. Guard: only draft|pending orders may be confirmed.
-     *   2. Pre-check all items have sufficient stock (fail-fast before mutations).
-     *   3. Record a 'sale' stock movement for every line item.
-     *   4. Post a 'debit' account_entry (pharmacy now owes this amount).
-     *   5. Update order status → confirmed + confirmed_at timestamp.
+     *   1. Guard: only draft|pending orders can be confirmed (idempotency check).
+     *   2. Pre-check every item has sufficient stock (fail-fast, no mutations yet).
+     *   3. Record TYPE_SALE stock movement for each line item.
+     *   4. Post TYPE_DEBIT account entry (pharmacy now owes the order total).
+     *   5. Set status → confirmed, confirmed_at → now().
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function confirmOrder(Order $order, ?int $userId = null): Order
     {
-        if (! in_array($order->status, ['draft', 'pending'])) {
+        if (! in_array($order->status, [Order::STATUS_DRAFT, Order::STATUS_PENDING])) {
             throw ValidationException::withMessages([
                 'order' => "Cannot confirm an order with status '{$order->status}'.",
             ]);
@@ -103,7 +136,7 @@ class OrderService
 
             $order->load('orderItems.product');
 
-            // Pre-check all stock before touching anything.
+            // Pre-check all stock before any mutations.
             foreach ($order->orderItems as $item) {
                 if (! $this->stockService->hasEnoughStock($item->product_id, $item->quantity)) {
                     $name = $item->product->name ?? "Product #{$item->product_id}";
@@ -113,25 +146,25 @@ class OrderService
                 }
             }
 
-            // Deduct stock for every line item.
+            // Record sale movements — StockService applies the negative sign.
             foreach ($order->orderItems as $item) {
-                $this->stockService->recordMovement(
-                    productId:     $item->product_id,
-                    type:          'sale',
-                    quantity:      $item->quantity,
-                    referenceType: Order::class,
-                    referenceId:   $order->id,
-                    notes:         "Confirmed order {$order->order_number}",
-                    createdBy:     $userId,
-                );
+                $this->stockService->recordMovement([
+                    'product_id'     => $item->product_id,
+                    'type'           => StockMovement::TYPE_SALE,
+                    'quantity'       => $item->quantity,
+                    'reference_type' => Order::class,
+                    'reference_id'   => $order->id,
+                    'notes'          => "Confirmed order {$order->order_number}",
+                    'created_by'     => $userId,
+                ]);
             }
 
-            // Debit entry: pharmacy balance increases (they owe us the total).
+            // Debit entry: pharmacy's balance increases (they owe us the total).
             AccountEntry::create([
                 'pharmacy_id' => $order->pharmacy_id,
                 'order_id'    => $order->id,
                 'payment_id'  => null,
-                'type'        => 'debit',
+                'type'        => AccountEntry::TYPE_DEBIT,
                 'amount'      => $order->total,
                 'description' => "Order confirmed: {$order->order_number}",
                 'entry_date'  => now()->toDateString(),
@@ -139,7 +172,7 @@ class OrderService
             ]);
 
             $order->update([
-                'status'       => 'confirmed',
+                'status'       => Order::STATUS_CONFIRMED,
                 'confirmed_at' => now(),
             ]);
 
@@ -147,24 +180,24 @@ class OrderService
         });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Cancel
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Cancel ───────────────────────────────────────────────────────────────
 
     /**
-     * Cancel an order.
+     * Cancel any non-cancelled order.
      *
      * Transaction flow:
-     *   1. Guard: already-cancelled orders cannot be cancelled again.
-     *   2. If the order was CONFIRMED, reverse all side-effects:
-     *        a. Record 'sale_cancel' movements to restore stock.
-     *        b. Post a 'credit' account_entry to reverse the debit.
-     *   3. Draft/pending orders require no stock or accounting reversal.
-     *   4. Update order status → cancelled + cancelled_at timestamp.
+     *   1. Guard: cannot cancel an already-cancelled order.
+     *   2. If order was CONFIRMED — reverse side-effects:
+     *        a. Record TYPE_SALE_CANCEL movements to restore stock.
+     *        b. Post TYPE_CREDIT account entry to reverse the debit.
+     *   3. Draft/pending orders: no stock or accounting reversal needed.
+     *   4. Set status → cancelled, cancelled_at → now().
+     *
+     * @throws \Illuminate\Validation\ValidationException
      */
     public function cancelOrder(Order $order, ?int $userId = null): Order
     {
-        if ($order->status === 'cancelled') {
+        if ($order->status === Order::STATUS_CANCELLED) {
             throw ValidationException::withMessages([
                 'order' => 'This order is already cancelled.',
             ]);
@@ -172,28 +205,28 @@ class OrderService
 
         return DB::transaction(function () use ($order, $userId) {
 
-            if ($order->status === 'confirmed') {
+            if ($order->status === Order::STATUS_CONFIRMED) {
                 $order->load('orderItems');
 
                 // Restore stock for every line item.
                 foreach ($order->orderItems as $item) {
-                    $this->stockService->recordMovement(
-                        productId:     $item->product_id,
-                        type:          'sale_cancel',
-                        quantity:      $item->quantity,
-                        referenceType: Order::class,
-                        referenceId:   $order->id,
-                        notes:         "Cancelled order {$order->order_number}",
-                        createdBy:     $userId,
-                    );
+                    $this->stockService->recordMovement([
+                        'product_id'     => $item->product_id,
+                        'type'           => StockMovement::TYPE_SALE_CANCEL,
+                        'quantity'       => $item->quantity,
+                        'reference_type' => Order::class,
+                        'reference_id'   => $order->id,
+                        'notes'          => "Cancelled order {$order->order_number}",
+                        'created_by'     => $userId,
+                    ]);
                 }
 
-                // Reverse the debit with a matching credit entry.
+                // Credit entry: reverses the debit posted on confirmation.
                 AccountEntry::create([
                     'pharmacy_id' => $order->pharmacy_id,
                     'order_id'    => $order->id,
                     'payment_id'  => null,
-                    'type'        => 'credit',
+                    'type'        => AccountEntry::TYPE_CREDIT,
                     'amount'      => $order->total,
                     'description' => "Order cancelled: {$order->order_number}",
                     'entry_date'  => now()->toDateString(),
@@ -202,7 +235,7 @@ class OrderService
             }
 
             $order->update([
-                'status'       => 'cancelled',
+                'status'       => Order::STATUS_CANCELLED,
                 'cancelled_at' => now(),
             ]);
 
@@ -210,16 +243,13 @@ class OrderService
         });
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Helpers
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Helpers ──────────────────────────────────────────────────────────────
 
     /**
      * Recompute subtotal and total from the order's current line items.
      *
-     * subtotal = sum of every item's already-computed total (after item-level discounts)
-     * discount = order-level discount (stored on the order record, not recalculated here)
-     * total    = subtotal − order discount  (minimum 0)
+     *   subtotal = sum of item totals (each already net of item-level discount)
+     *   total    = subtotal − order-level discount (minimum 0)
      *
      * Returns an array suitable for Order::update().
      */
@@ -229,9 +259,9 @@ class OrderService
             ? $order->orderItems
             : $order->orderItems()->get();
 
-        $subtotal      = $items->sum('total');
+        $subtotal      = (float) $items->sum('total');
         $orderDiscount = (float) $order->discount;
-        $total         = max(0, $subtotal - $orderDiscount);
+        $total         = max(0.0, $subtotal - $orderDiscount);
 
         return [
             'subtotal' => round($subtotal, 2),
