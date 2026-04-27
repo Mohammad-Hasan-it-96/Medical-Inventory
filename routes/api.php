@@ -48,6 +48,12 @@ Route::prefix('v1')->middleware('auth:api')->group(function () {
 
     // Rep dashboard
     Route::get('rep/dashboard', [V1\DashboardController::class, 'repDashboard']);
+
+    // ── Sync (Flutter offline-first) ──────────────────────────────────────
+    Route::prefix('sync')->group(function () {
+        Route::get('bootstrap', [V1\SyncController::class, 'bootstrap']);
+        Route::get('changes',   [V1\SyncController::class, 'changes']);
+    });
 });
 
 

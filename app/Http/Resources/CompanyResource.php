@@ -15,6 +15,8 @@ class CompanyResource extends JsonResource
             'phone'      => $this->phone,
             'address'    => $this->address,
             'is_active'  => $this->is_active,
+            'updated_at' => $this->updated_at?->toIso8601String(),
+            'deleted_at' => $this->deleted_at?->toIso8601String(),
         ];
     }
 }
