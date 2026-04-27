@@ -12,17 +12,17 @@
                 </a>
                 <h2 class="fw-bold mb-0">{{\App\Helpers\Helpers::translate('create_new_user')}}</h2>
             </div>
-            
+
             <div class="card border-0 shadow-lg">
                 <div class="card-body p-4">
                     <form method="POST" action="{{ route('admin.users.store') }}" enctype="multipart/form-data">
                         @csrf
-                        
+
                         <div class="row g-4">
                             <!-- Profile Picture Section -->
                             <div class="col-12 text-center mb-3">
                                 <div class="position-relative d-inline-block">
-                                    <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto" 
+                                    <div class="d-flex align-items-center justify-content-center rounded-circle mx-auto"
                                          style="width: 120px; height: 120px; background-color: #e9ecef; color: #6c757d; font-size: 3rem;" id="profile-initials">
                                         <i class="bi bi-person"></i>
                                     </div>
@@ -43,7 +43,7 @@
                                 <label for="name" class="form-label">{{\App\Helpers\Helpers::translate('full_name')}}</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent"><i class="bi bi-person"></i></span>
-                                    <input type="text" class="form-control @error('name') is-invalid @enderror" 
+                                    <input type="text" class="form-control @error('name') is-invalid @enderror"
                                            id="name" name="name" value="{{ old('name') }}" required>
                                 </div>
                                 @error('name')
@@ -55,7 +55,7 @@
                                 <label for="email" class="form-label">{{\App\Helpers\Helpers::translate('email_address')}}</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent"><i class="bi bi-envelope"></i></span>
-                                    <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
                                            id="email" name="email" value="{{ old('email') }}" required>
                                 </div>
                                 @error('email')
@@ -70,6 +70,7 @@
                                     <select class="form-select @error('role') is-invalid @enderror" id="role" name="role" required>
                                         <option value="user" {{ old('role') === 'user' ? 'selected' : '' }}>{{\App\Helpers\Helpers::translate('user')}}</option>
                                         <option value="moderator" {{ old('role') === 'moderator' ? 'selected' : '' }}>{{\App\Helpers\Helpers::translate('moderator')}}</option>
+                                        <option value="rep" {{ old('role') === 'rep' ? 'selected' : '' }}>{{\App\Helpers\Helpers::translate('rep')}}</option>
                                         <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>{{\App\Helpers\Helpers::translate('admin')}}</option>
                                     </select>
                                 </div>
@@ -82,7 +83,7 @@
                                 <label for="password" class="form-label">{{\App\Helpers\Helpers::translate('password')}}</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent"><i class="bi bi-key"></i></span>
-                                    <input type="password" class="form-control @error('password') is-invalid @enderror" 
+                                    <input type="password" class="form-control @error('password') is-invalid @enderror"
                                            id="password" name="password" required>
                                 </div>
                                 @error('password')
@@ -94,7 +95,7 @@
                                 <label for="password_confirmation" class="form-label">{{\App\Helpers\Helpers::translate('confirm_password')}}</label>
                                 <div class="input-group">
                                     <span class="input-group-text bg-transparent"><i class="bi bi-shield-lock"></i></span>
-                                    <input type="password" class="form-control" 
+                                    <input type="password" class="form-control"
                                            id="password_confirmation" name="password_confirmation" required>
                                 </div>
                             </div>
@@ -121,20 +122,20 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Preview uploaded profile picture
         const profilePictureInput = document.getElementById('profile_picture');
-        
+
         if (profilePictureInput) {
             profilePictureInput.addEventListener('change', function() {
                 if (this.files && this.files[0]) {
                     const reader = new FileReader();
-                    
+
                     reader.onload = function(e) {
                         const profileInitials = document.getElementById('profile-initials');
-                        
+
                         if (profileInitials) {
                             // Replace initials with image
                             const parent = profileInitials.parentNode;
                             profileInitials.remove();
-                            
+
                             const newImage = document.createElement('img');
                             newImage.src = e.target.result;
                             newImage.alt = "Profile Preview";
@@ -143,12 +144,12 @@
                             newImage.width = 120;
                             newImage.height = 120;
                             newImage.style.objectFit = "cover";
-                            
+
                             // Insert before the label (which is the second child)
                             parent.insertBefore(newImage, parent.children[0]);
                         }
                     }
-                    
+
                     reader.readAsDataURL(this.files[0]);
                 }
             });

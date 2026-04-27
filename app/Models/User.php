@@ -58,6 +58,24 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
+    /** Check if the user is an admin. */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /** Check if the user is a moderator. */
+    public function isModerator(): bool
+    {
+        return $this->role === 'moderator';
+    }
+
+    /** Check if the user is a sales representative (rep). */
+    public function isRep(): bool
+    {
+        return $this->role === 'rep';
+    }
+
     /**
      * Get the profile picture URL
      *

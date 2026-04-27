@@ -117,6 +117,7 @@ return [
     'admin' => 'مدير',
     'moderator' => 'مشرف',
     'user' => 'مستخدم',
+    'rep' => 'مندوب',
     // Login/Auth
     'login' => 'تسجيل الدخول',
     'register' => 'تسجيل جديد',

@@ -4,6 +4,7 @@ use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\ModeratorMiddleware;
 use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\RepMiddleware;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => AdminMiddleware::class,
             'moderator' => ModeratorMiddleware::class,
+            'rep' => RepMiddleware::class,
             'auth' => Authenticate::class,
             'guest' => RedirectIfAuthenticated::class,
         ]);

@@ -115,6 +115,7 @@ return [
     'admin' => 'Admin',
     'moderator' => 'Moderator',
     'user' => 'User',
+    'rep' => 'Sales Rep',
     // Login/Auth
     'login' => 'Login',
     'register' => 'Register',
