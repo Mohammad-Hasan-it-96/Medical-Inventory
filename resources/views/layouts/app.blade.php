@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Laravel') }} - @yield('title')</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -98,7 +98,7 @@
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        
+
         [data-bs-theme="dark"] {
             --background: #0f172a;
             --card-bg: #1e293b;
@@ -295,10 +295,10 @@
                         <i class="bi bi-speedometer2 me-3"></i>
                         <span>{{ \App\Helpers\Helpers::translate('dashboard') }}</span>
                     </a>
-                    
+
                     <!-- Products Dropdown -->
                     <div class="sidebar-item mb-1">
-                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.products.*') ? 'active' : '' }}" 
+                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.products.*') ? 'active' : '' }}"
                                 data-bs-toggle="collapse" data-bs-target="#productsCollapse" aria-expanded="{{ request()->routeIs('admin.products.*') ? 'true' : 'false' }}">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-box-seam me-3" style="{{ request()->routeIs('admin.products.*') ? 'color: #ffffff !important;' : '' }}"></i>
@@ -325,11 +325,73 @@
                             </div>
                         </div>
                     </div>
-                    
+
+                    <!-- Companies -->
+                    <div class="sidebar-item mb-1">
+                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.companies.*') ? 'active' : '' }}"
+                                data-bs-toggle="collapse" data-bs-target="#companiesCollapse" aria-expanded="{{ request()->routeIs('admin.companies.*') ? 'true' : 'false' }}">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-buildings me-3" style="{{ request()->routeIs('admin.companies.*') ? 'color:#ffffff!important;' : '' }}"></i>
+                                <span style="{{ request()->routeIs('admin.companies.*') ? 'color:#ffffff!important;' : '' }}">{{ \App\Helpers\Helpers::translate('companies') }}</span>
+                            </div>
+                            <i class="bi {{ request()->routeIs('admin.companies.*') ? 'bi-chevron-down' : 'bi-chevron-right' }}" style="{{ request()->routeIs('admin.companies.*') ? 'color:#ffffff!important;' : '' }}"></i>
+                        </button>
+                        <div class="collapse {{ request()->routeIs('admin.companies.*') ? 'show' : '' }}" id="companiesCollapse">
+                            <div class="nav flex-column ms-4 mt-1">
+                                <a href="{{ route('admin.companies.index') }}" class="nav-link py-2 px-3 rounded-3 {{ request()->routeIs('admin.companies.index') ? 'active' : '' }}">
+                                    <i class="bi bi-list me-2"></i><span>{{ \App\Helpers\Helpers::translate('list') }}</span>
+                                </a>
+                                <a href="{{ route('admin.companies.create') }}" class="nav-link py-2 px-3 rounded-3 {{ request()->routeIs('admin.companies.create') ? 'active' : '' }}">
+                                    <i class="bi bi-plus-circle me-2"></i><span>{{ \App\Helpers\Helpers::translate('add_new') }}</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pharmacies -->
+                    <div class="sidebar-item mb-1">
+                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.pharmacies.*') ? 'active' : '' }}"
+                                data-bs-toggle="collapse" data-bs-target="#pharmaciesCollapse" aria-expanded="{{ request()->routeIs('admin.pharmacies.*') ? 'true' : 'false' }}">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-hospital me-3" style="{{ request()->routeIs('admin.pharmacies.*') ? 'color:#ffffff!important;' : '' }}"></i>
+                                <span style="{{ request()->routeIs('admin.pharmacies.*') ? 'color:#ffffff!important;' : '' }}">{{ \App\Helpers\Helpers::translate('pharmacies') }}</span>
+                            </div>
+                            <i class="bi {{ request()->routeIs('admin.pharmacies.*') ? 'bi-chevron-down' : 'bi-chevron-right' }}" style="{{ request()->routeIs('admin.pharmacies.*') ? 'color:#ffffff!important;' : '' }}"></i>
+                        </button>
+                        <div class="collapse {{ request()->routeIs('admin.pharmacies.*') ? 'show' : '' }}" id="pharmaciesCollapse">
+                            <div class="nav flex-column ms-4 mt-1">
+                                <a href="{{ route('admin.pharmacies.index') }}" class="nav-link py-2 px-3 rounded-3 {{ request()->routeIs('admin.pharmacies.index') ? 'active' : '' }}">
+                                    <i class="bi bi-list me-2"></i><span>{{ \App\Helpers\Helpers::translate('list') }}</span>
+                                </a>
+                                <a href="{{ route('admin.pharmacies.create') }}" class="nav-link py-2 px-3 rounded-3 {{ request()->routeIs('admin.pharmacies.create') ? 'active' : '' }}">
+                                    <i class="bi bi-plus-circle me-2"></i><span>{{ \App\Helpers\Helpers::translate('add_new') }}</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders -->
+                    <a href="{{ route('admin.orders.index') }}" class="nav-link d-flex align-items-center py-3 px-3 rounded-3 mb-1 {{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                        <i class="bi bi-receipt me-3"></i>
+                        <span>{{ \App\Helpers\Helpers::translate('orders') }}</span>
+                    </a>
+
+                    <!-- Stock Movements -->
+                    <a href="{{ route('admin.stock-movements.index') }}" class="nav-link d-flex align-items-center py-3 px-3 rounded-3 mb-1 {{ request()->routeIs('admin.stock-movements.index') ? 'active' : '' }}">
+                        <i class="bi bi-arrow-left-right me-3"></i>
+                        <span>{{ \App\Helpers\Helpers::translate('stock_movements') }}</span>
+                    </a>
+
+                    <!-- Payments -->
+                    <a href="{{ route('admin.payments.index') }}" class="nav-link d-flex align-items-center py-3 px-3 rounded-3 mb-1 {{ request()->routeIs('admin.payments.index') ? 'active' : '' }}">
+                        <i class="bi bi-cash-coin me-3"></i>
+                        <span>{{ \App\Helpers\Helpers::translate('payments') }}</span>
+                    </a>
+
                     <!-- Users Dropdown - Only for Admins -->
                     @if(Auth::user()->role === 'admin')
                     <div class="sidebar-item mb-1">
-                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" 
+                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"
                                 data-bs-toggle="collapse" data-bs-target="#usersCollapse" aria-expanded="{{ request()->routeIs('admin.users.*') ? 'true' : 'false' }}">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-people me-3" style="{{ request()->routeIs('admin.users.*') ? 'color: #ffffff !important;' : '' }}"></i>
@@ -351,10 +413,10 @@
                         </div>
                     </div>
                     @endif
-                    
+
                     <!-- Languages Dropdown -->
                     <div class="sidebar-item mb-1">
-                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.languages.*') ? 'active' : '' }}" 
+                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.languages.*') ? 'active' : '' }}"
                                 data-bs-toggle="collapse" data-bs-target="#languagesCollapse" aria-expanded="{{ request()->routeIs('admin.languages.*') ? 'true' : 'false' }}">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-translate me-3" style="{{ request()->routeIs('admin.languages.*') ? 'color: #ffffff !important;' : '' }}"></i>
@@ -377,11 +439,11 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- System Configs Dropdown - Only for Admins -->
                     @if(Auth::user()->role === 'admin')
                     <div class="sidebar-item mb-1">
-                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.configs.*') ? 'active' : '' }}" 
+                        <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.configs.*') ? 'active' : '' }}"
                                 data-bs-toggle="collapse" data-bs-target="#configsCollapse" aria-expanded="{{ request()->routeIs('admin.configs.*') ? 'true' : 'false' }}">
                             <div class="d-flex align-items-center">
                                 <i class="bi bi-gear me-3" style="{{ request()->routeIs('admin.configs.*') ? 'color: #ffffff !important;' : '' }}"></i>
@@ -500,7 +562,7 @@
                 htmlElement.setAttribute('data-bs-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
                 updateThemeIcon(newTheme);
-                
+
                 // Apply theme to all elements that need it
                 applyThemeToElements(newTheme);
             });
@@ -515,23 +577,23 @@
                     icon.classList.add('bi-moon-stars');
                 }
             }
-            
+
             function applyThemeToElements(theme) {
                 // This ensures all elements using CSS variables get updated
-                document.documentElement.style.setProperty('--card-bg', 
+                document.documentElement.style.setProperty('--card-bg',
                     theme === 'dark' ? '#1e293b' : '#ffffff');
-                document.documentElement.style.setProperty('--text', 
+                document.documentElement.style.setProperty('--text',
                     theme === 'dark' ? '#f1f5f9' : '#1e293b');
-                document.documentElement.style.setProperty('--text-muted', 
+                document.documentElement.style.setProperty('--text-muted',
                     theme === 'dark' ? '#94a3b8' : '#64748b');
-                document.documentElement.style.setProperty('--border-color', 
+                document.documentElement.style.setProperty('--border-color',
                     theme === 'dark' ? '#334155' : '#e2e8f0');
-                document.documentElement.style.setProperty('--sidebar-bg', 
+                document.documentElement.style.setProperty('--sidebar-bg',
                     theme === 'dark' ? '#1e293b' : '#f8fafc');
-                document.documentElement.style.setProperty('--sidebar-hover', 
+                document.documentElement.style.setProperty('--sidebar-hover',
                     theme === 'dark' ? '#334155' : '#f1f5f9');
             }
-            
+
             // Apply theme on initial load
             applyThemeToElements(savedTheme || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 
@@ -662,69 +724,69 @@
     .sidebar .text-muted {
         color: var(--text-muted) !important;
     }
-    
+
     /* Sidebar dropdown styles */
     .sidebar-item button {
         text-align: left;
         font-size: 1rem;
         color: var(--text);
     }
-    
+
     .sidebar-item button:hover:not(.active) {
         background-color: var(--sidebar-hover);
     }
-    
+
     .sidebar-item button:focus {
         outline: none;
         box-shadow: none;
     }
-    
+
     /* Fix for active items - with increased specificity */
     .sidebar .nav-link.active,
     .sidebar-item button.active {
         background-color: var(--primary) !important;
     }
-    
+
     .sidebar .nav-link.active span,
     .sidebar .nav-link.active i,
     .sidebar-item button.active span,
     .sidebar-item button.active i {
         color: #ffffff !important; /* Use explicit #ffffff instead of 'white' */
     }
-    
+
     /* Additional specificity for dropdown items */
     .sidebar-item .collapse .nav-link.active span,
     .sidebar-item .collapse .nav-link.active i {
         color: #ffffff !important;
     }
-    
+
     /* Ensure text is visible in all states */
     .sidebar-item button span,
     .sidebar-item .nav-link span {
         color: var(--text);
     }
-    
+
     .sidebar-item button.active span,
     .sidebar-item button.active i,
     .sidebar-item .nav-link.active span,
     .sidebar-item .nav-link.active i {
         color: #ffffff !important;
     }
-    
+
     /* Dark mode adjustments for dropdown menus */
     [data-bs-theme="dark"] .dropdown-menu {
         background-color: var(--card-bg);
         border-color: var(--border-color);
     }
-    
+
     [data-bs-theme="dark"] .dropdown-item {
         color: var(--text);
     }
-    
+
     [data-bs-theme="dark"] .dropdown-item:hover {
         background-color: var(--sidebar-hover);
     }
-    
+
     [data-bs-theme="dark"] .dropdown-divider {
         border-color: var(--border-color);
     }

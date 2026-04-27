@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\CompanyController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\PharmacyController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\StockMovementController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\LanguageController;
 use App\Http\Controllers\API\ProfileController;
@@ -94,4 +99,36 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
         Route::post('/store', [App\Http\Controllers\Admin\ConfigController::class, 'store'])->name('store');
         Route::delete('/{id}', [App\Http\Controllers\Admin\ConfigController::class, 'destroy'])->name('destroy');
     });
+
+    // ── Companies ─────────────────────────────────────────────────────────────
+    Route::prefix('companies')->name('companies.')->group(function () {
+        Route::get('',              [CompanyController::class, 'index'])->name('index');
+        Route::get('create',        [CompanyController::class, 'create'])->name('create');
+        Route::post('store',        [CompanyController::class, 'store'])->name('store');
+        Route::get('{company}/edit',[CompanyController::class, 'edit'])->name('edit');
+        Route::put('{company}',     [CompanyController::class, 'update'])->name('update');
+        Route::delete('{company}',  [CompanyController::class, 'destroy'])->name('destroy');
+    });
+
+    // ── Pharmacies ────────────────────────────────────────────────────────────
+    Route::prefix('pharmacies')->name('pharmacies.')->group(function () {
+        Route::get('',               [PharmacyController::class, 'index'])->name('index');
+        Route::get('create',         [PharmacyController::class, 'create'])->name('create');
+        Route::post('store',         [PharmacyController::class, 'store'])->name('store');
+        Route::get('{pharmacy}/edit',[PharmacyController::class, 'edit'])->name('edit');
+        Route::put('{pharmacy}',     [PharmacyController::class, 'update'])->name('update');
+        Route::delete('{pharmacy}',  [PharmacyController::class, 'destroy'])->name('destroy');
+    });
+
+    // ── Orders (read-only) ────────────────────────────────────────────────────
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('',          [OrderController::class, 'index'])->name('index');
+        Route::get('{order}',   [OrderController::class, 'show'])->name('show');
+    });
+
+    // ── Stock Movements ───────────────────────────────────────────────────────
+    Route::get('stock-movements', [StockMovementController::class, 'index'])->name('stock-movements.index');
+
+    // ── Payments ──────────────────────────────────────────────────────────────
+    Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
 });
