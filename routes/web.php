@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\LanguageController;
-use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\AuthController;
