@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API\V1;
 use App\Http\Controllers\API\BaseController;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Models\StockMovement;
 use App\Services\StockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,13 +43,17 @@ class ProductController extends BaseController
 
         $products = $query->orderBy('name')->paginate(15);
 
-        // Append current_stock only when explicitly requested to avoid N+1 by default.
+        // Append current_stock only when explicitly requested.
+        // Use a single batch GROUP-BY query to avoid N+1 (one SUM per product).
         if ($request->boolean('with_stock')) {
-            $products->getCollection()->transform(function (Product $product) {
-                $product->setAttribute(
-                    'current_stock',
-                    $this->stockService->getCurrentStock($product->id)
-                );
+            $ids    = $products->getCollection()->pluck('id');
+            $stocks = StockMovement::whereIn('product_id', $ids)
+                ->groupBy('product_id')
+                ->selectRaw('product_id, SUM(quantity) as total')
+                ->pluck('total', 'product_id');
+
+            $products->getCollection()->transform(function (Product $product) use ($stocks) {
+                $product->setAttribute('current_stock', (int) ($stocks[$product->id] ?? 0));
                 return $product;
             });
         }

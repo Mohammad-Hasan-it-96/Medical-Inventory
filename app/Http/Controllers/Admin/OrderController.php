@@ -6,6 +6,7 @@ use App\Models\Pharmacy;
 use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 class OrderController extends Controller
 {
@@ -30,6 +31,9 @@ class OrderController extends Controller
     }
     public function confirm(Order $order)
     {
+        if (Gate::denies('confirm', $order)) {
+            abort(403);
+        }
         try {
             $this->orderService->confirmOrder($order, auth()->id());
             return redirect()->route('admin.orders.show', $order)
@@ -46,6 +50,9 @@ class OrderController extends Controller
     }
     public function cancel(Order $order)
     {
+        if (Gate::denies('cancel', $order)) {
+            abort(403);
+        }
         try {
             $this->orderService->cancelOrder($order, auth()->id());
             return redirect()->route('admin.orders.show', $order)

@@ -55,14 +55,19 @@ class PaymentService
             throw new ValidationException($validator);
         }
 
-        // If order_id provided it must belong to the same pharmacy.
+        // If order_id provided it must belong to the same pharmacy AND be confirmed.
         if (! empty($validated['order_id'])) {
-            $orderExists = Order::where('id', $validated['order_id'])
+            $linkedOrder = Order::where('id', $validated['order_id'])
                 ->where('pharmacy_id', $validated['pharmacy_id'])
-                ->exists();
+                ->first();
 
-            if (! $orderExists) {
+            if (! $linkedOrder) {
                 $validator->errors()->add('order_id', 'The selected order does not belong to this pharmacy.');
+                throw new ValidationException($validator);
+            }
+
+            if ($linkedOrder->status !== Order::STATUS_CONFIRMED) {
+                $validator->errors()->add('order_id', 'Payments can only be linked to confirmed orders.');
                 throw new ValidationException($validator);
             }
         }

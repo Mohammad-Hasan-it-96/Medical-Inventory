@@ -9,6 +9,7 @@ use App\Models\Pharmacy;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -137,11 +138,19 @@ class OrderService
             $order->load('orderItems.product');
 
             // Pre-check all stock before any mutations.
+            // Batch: single GROUP-BY query instead of one SUM query per item (avoids N+1).
+            $productIds     = $order->orderItems->pluck('product_id')->unique();
+            $stockTotals    = StockMovement::whereIn('product_id', $productIds)
+                ->groupBy('product_id')
+                ->selectRaw('product_id, SUM(quantity) as total_qty')
+                ->pluck('total_qty', 'product_id');
+
             foreach ($order->orderItems as $item) {
-                if (! $this->stockService->hasEnoughStock($item->product_id, $item->quantity)) {
+                $available = (int) ($stockTotals[$item->product_id] ?? 0);
+                if ($available < $item->quantity) {
                     $name = $item->product->name ?? "Product #{$item->product_id}";
                     throw ValidationException::withMessages([
-                        'stock' => "Insufficient stock for '{$name}'.",
+                        'stock' => "Insufficient stock for '{$name}' (available: {$available}, requested: {$item->quantity}).",
                     ]);
                 }
             }
@@ -160,16 +169,19 @@ class OrderService
             }
 
             // Debit entry: pharmacy's balance increases (they owe us the total).
-            AccountEntry::create([
-                'pharmacy_id' => $order->pharmacy_id,
-                'order_id'    => $order->id,
-                'payment_id'  => null,
-                'type'        => AccountEntry::TYPE_DEBIT,
-                'amount'      => $order->total,
-                'description' => "Order confirmed: {$order->order_number}",
-                'entry_date'  => now()->toDateString(),
-                'created_by'  => $userId,
-            ]);
+            // Skip if total is zero to avoid polluting the ledger with empty entries.
+            if ($order->total > 0) {
+                AccountEntry::create([
+                    'pharmacy_id' => $order->pharmacy_id,
+                    'order_id'    => $order->id,
+                    'payment_id'  => null,
+                    'type'        => AccountEntry::TYPE_DEBIT,
+                    'amount'      => $order->total,
+                    'description' => "Order confirmed: {$order->order_number}",
+                    'entry_date'  => now()->toDateString(),
+                    'created_by'  => $userId,
+                ]);
+            }
 
             $order->update([
                 'status'       => Order::STATUS_CONFIRMED,
@@ -222,16 +234,19 @@ class OrderService
                 }
 
                 // Credit entry: reverses the debit posted on confirmation.
-                AccountEntry::create([
-                    'pharmacy_id' => $order->pharmacy_id,
-                    'order_id'    => $order->id,
-                    'payment_id'  => null,
-                    'type'        => AccountEntry::TYPE_CREDIT,
-                    'amount'      => $order->total,
-                    'description' => "Order cancelled: {$order->order_number}",
-                    'entry_date'  => now()->toDateString(),
-                    'created_by'  => $userId,
-                ]);
+                // Only post if there was an original non-zero debit to reverse.
+                if ($order->total > 0) {
+                    AccountEntry::create([
+                        'pharmacy_id' => $order->pharmacy_id,
+                        'order_id'    => $order->id,
+                        'payment_id'  => null,
+                        'type'        => AccountEntry::TYPE_CREDIT,
+                        'amount'      => $order->total,
+                        'description' => "Order cancelled: {$order->order_number}",
+                        'entry_date'  => now()->toDateString(),
+                        'created_by'  => $userId,
+                    ]);
+                }
             }
 
             $order->update([
