@@ -50,6 +50,23 @@ return [
     'delete_confirm_company'  => 'هل أنت متأكد من حذف هذه الشركة؟',
     'delete_confirm_product'  => 'هل أنت متأكد من حذف هذا المنتج؟',
 
+    // ── طرق الدفع ───────────────────────────────────────────────────────────
+    'payment_method' => [
+        'all'   => 'الكل',
+        'cash'  => 'نقدي',
+        'bank'  => 'تحويل بنكي',
+        'other' => 'أخرى',
+    ],
+    'payment_create'     => 'تسجيل دفعة',
+    'payment_title'      => 'المدفوعات',
+    'payment_amount'     => 'المبلغ',
+    'payment_method_lbl' => 'طريقة الدفع',
+    'payment_paid_at'    => 'تاريخ الدفع',
+    'payment_notes'      => 'ملاحظات',
+    'payment_order'      => 'طلب مرتبط (اختياري)',
+    'select_pharmacy'    => 'اختر صيدلية',
+    'select_order'       => 'بدون طلب مرتبط',
+
     // ── عناصر نائبة للبحث / الفلاتر ─────────────────────────────────────
     'placeholder_name_phone'      => 'الاسم أو الهاتف…',
     'placeholder_name_phone_area' => 'الاسم / الهاتف / المنطقة…',

@@ -50,6 +50,23 @@ return [
     'delete_confirm_company'  => 'Are you sure you want to delete this company?',
     'delete_confirm_product'  => 'Are you sure you want to delete this product?',
 
+    // ── Payment methods ─────────────────────────────────────────────────────
+    'payment_method' => [
+        'all'   => 'All',
+        'cash'  => 'Cash',
+        'bank'  => 'Bank Transfer',
+        'other' => 'Other',
+    ],
+    'payment_create'     => 'Record Payment',
+    'payment_title'      => 'Payments',
+    'payment_amount'     => 'Amount',
+    'payment_method_lbl' => 'Payment Method',
+    'payment_paid_at'    => 'Paid At',
+    'payment_notes'      => 'Notes',
+    'payment_order'      => 'Related Order (optional)',
+    'select_pharmacy'    => 'Select Pharmacy',
+    'select_order'       => 'No related order',
+
     // ── Search / filter placeholders ────────────────────────────────────────
     'placeholder_name_phone'      => 'Name or phone…',
     'placeholder_name_phone_area' => 'Name / phone / area…',

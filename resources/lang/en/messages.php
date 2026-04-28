@@ -45,6 +45,10 @@ return [
     'order_confirm_failed' => 'Could not confirm order: :error',
     'order_cancel_failed'  => 'Could not cancel order: :error',
 
+    // ── Payments ─────────────────────────────────────────────────────────────
+    'payment_created' => 'Payment recorded successfully.',
+    'payment_failed'  => 'Could not record payment: :error',
+
     // ── System configs ───────────────────────────────────────────────────────
     'configs_updated' => 'Configurations updated successfully.',
     'config_created'  => 'Configuration created successfully.',
