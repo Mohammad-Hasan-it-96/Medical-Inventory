@@ -71,10 +71,17 @@ class SyncController extends BaseController
         return response()->json([
             'success' => true,
             'data'    => [
-                'companies'   => $this->section($request, $companies, CompanyResource::class),
+                'server_time'  => now()->toIso8601String(),
+                'current_user' => [
+                    'id'              => $user->id,
+                    'name'            => $user->name,
+                    'email'           => $user->email,
+                    'role'            => $user->role,
+                    'profile_picture' => $user->getProfilePictureUrl(),
+                ],
+                'companies'   => $this->section($request, $companies,  CompanyResource::class),
                 'products'    => $this->section($request, $products,   ProductResource::class),
                 'pharmacies'  => $this->section($request, $pharmacies, PharmacyResource::class),
-                'server_time' => now()->toIso8601String(),
             ],
             'message' => 'Bootstrap data retrieved successfully.',
         ]);
