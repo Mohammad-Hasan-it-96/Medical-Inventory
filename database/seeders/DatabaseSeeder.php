@@ -23,7 +23,11 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,      // admin + 2 reps
             CompanySeeder::class,   // 5 companies
             ProductSeeder::class,   // 30 products + prices + opening stock
-            PharmacySeeder::class,  // 20 pharmacies
+            PharmacySeeder::class,  // 20 pharmacies (10 per rep)
+
+            // Transactional data — depends on all above
+            OrderSeeder::class,     // 5 orders (2 confirmed, 2 pending, 1 draft)
+            PaymentSeeder::class,   // 3 payments against confirmed orders
         ]);
     }
 }

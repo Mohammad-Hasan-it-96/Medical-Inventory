@@ -32,14 +32,14 @@ class LanguageSeeder extends Seeder
         ];
         foreach ($languages as $language) {
             Language::updateOrCreate(
-                 [
-                     'name' => $language['name'],
-                     'code' => $language['code'] ,
-                     'direction' => $language['direction'] ,
-                     'status' => $language['status'] ,
-                     'is_default' => $language['is_default'],
-                     'flag_path' => $language['flag_path']
-                 ],
+                ['code' => $language['code']],   // match key
+                [
+                    'name'       => $language['name'],
+                    'direction'  => $language['direction'],
+                    'status'     => $language['status'],
+                    'is_default' => $language['is_default'],
+                    'flag_path'  => $language['flag_path'],
+                ]
             );
         }
     }
