@@ -116,6 +116,8 @@ class OrderController extends BaseController
 
         try {
             $order = $this->orderService->createOrder($data, $repId);
+        } catch (ValidationException $e) {
+            return $this->sendError('Validation failed.', $e->errors(), 422);
         } catch (\Exception $e) {
             return $this->sendError('Failed to create order: ' . $e->getMessage(), [], 500);
         }

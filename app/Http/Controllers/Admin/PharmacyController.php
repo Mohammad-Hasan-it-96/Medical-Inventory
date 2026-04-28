@@ -73,6 +73,8 @@ class PharmacyController extends Controller
     }
     public function destroy(Pharmacy $pharmacy)
     {
+        $this->authorize('delete', $pharmacy);
+
         $pharmacy->delete();
         return redirect()->route('admin.pharmacies.index')->with('success', __('pharmacies.messages.deleted'));
     }

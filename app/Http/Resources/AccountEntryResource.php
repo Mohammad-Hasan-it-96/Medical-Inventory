@@ -23,6 +23,11 @@ class AccountEntryResource extends JsonResource
 
             // Relationships — only present when eager-loaded.
             'pharmacy' => new PharmacyResource($this->whenLoaded('pharmacy')),
+            'order'    => $this->whenLoaded('order', fn () => [
+                'id'           => $this->order->id,
+                'order_number' => $this->order->order_number,
+                'status'       => $this->order->status,
+            ]),
         ];
     }
 }

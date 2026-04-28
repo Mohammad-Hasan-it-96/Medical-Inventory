@@ -66,7 +66,7 @@ class PaymentController extends BaseController
         $payments = $query->paginate(20);
 
         return $this->sendResponse(
-            PaymentResource::collection($payments)->response()->getData(true),
+            PaymentResource::collection($payments),
             'Payments retrieved successfully.'
         );
     }

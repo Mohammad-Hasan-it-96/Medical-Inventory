@@ -33,7 +33,6 @@ class StatementController extends BaseController
      */
     public function pharmacy(Request $request, Pharmacy $pharmacy): JsonResponse
     {
-        $user = $request->user();
 
         // Reps can only view their own assigned pharmacies.
         if (Gate::denies('view', $pharmacy)) {
