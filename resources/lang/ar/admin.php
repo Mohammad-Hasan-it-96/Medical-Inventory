@@ -6,6 +6,23 @@
  */
 return [
 
+    // ── إحصائيات ولوحات لوحة التحكم ────────────────────────────────────────
+    'dash_total_products'   => 'إجمالي المنتجات',
+    'dash_active_products'  => 'المنتجات النشطة',
+    'dash_total_pharmacies' => 'الصيدليات',
+    'dash_total_reps'       => 'مندوبو المبيعات',
+    'dash_orders_today'     => 'طلبات اليوم',
+    'dash_pending_orders'   => 'الطلبات المعلّقة',
+    'dash_confirmed_month'  => 'مؤكد هذا الشهر',
+    'dash_sales_month'      => 'مبيعات هذا الشهر',
+    'dash_payments_month'   => 'مدفوعات هذا الشهر',
+    'dash_low_stock'        => 'منتجات نقص المخزون',
+    'dash_recent_orders'    => 'آخر الطلبات',
+    'dash_recent_payments'  => 'آخر المدفوعات',
+    'dash_low_stock_list'   => 'تنبيه نقص المخزون',
+    'dash_current_stock'    => 'المخزون',
+    'dash_min_stock'        => 'الحد الأدنى',
+
     // ── حالات الطلبات / المدفوعات ───────────────────────────────────────────
     'order_status' => [
         'all'        => 'الكل',
@@ -66,6 +83,7 @@ return [
     'payment_order'      => 'طلب مرتبط (اختياري)',
     'select_pharmacy'    => 'اختر صيدلية',
     'select_order'       => 'بدون طلب مرتبط',
+    'select_pharmacy_first' => 'اختر صيدلية أولاً لتصفية الطلبات',
 
     // ── عناصر نائبة للبحث / الفلاتر ─────────────────────────────────────
     'placeholder_name_phone'      => 'الاسم أو الهاتف…',

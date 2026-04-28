@@ -5,269 +5,323 @@
 @section('content')
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold">{{\App\Helpers\Helpers::translate('dashboard')}}</h2>
-        <div class="d-flex gap-2">
-            <button class="btn btn-outline-primary">
-                <i class="bi bi-download me-2"></i>{{\App\Helpers\Helpers::translate('export')}}
-            </button>
-            <button class="btn btn-primary">
-                <i class="bi bi-plus-lg me-2"></i>{{\App\Helpers\Helpers::translate('new_report')}}
-            </button>
-        </div>
+        <h2 class="fw-bold">{{ \App\Helpers\Helpers::translate('dashboard') }}</h2>
+        <span class="text-muted small">{{ now()->format('d M Y') }}</span>
     </div>
 
-    <!-- Stats Cards -->
+    {{-- ── Row 1: Inventory & People ──────────────────────────────────────── --}}
     <div class="row g-4 mb-4">
+
+        {{-- Total Products --}}
         <div class="col-md-6 col-lg-3">
             <div class="card border-0 h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <h6 class="text-muted mb-1">{{\App\Helpers\Helpers::translate('total_sales')}}</h6>
-                            <h3 class="fw-bold mb-0">$24,780</h3>
+                            <h6 class="text-muted mb-1">{{ __('admin.dash_total_products') }}</h6>
+                            <h3 class="fw-bold mb-0">{{ number_format($stats['total_products']) }}</h3>
                         </div>
-                        <div class="rounded-circle p-2" style="background-color: rgba(79, 70, 229, 0.1);">
-                            <i class="bi bi-cart-check fs-4" style="color: var(--primary);"></i>
+                        <div class="rounded-circle p-2" style="background-color:rgba(79,70,229,.12);">
+                            <i class="bi bi-capsule fs-4" style="color:var(--primary);"></i>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-success me-2">+12.5%</span>
-                        <span class="text-muted small">{{\App\Helpers\Helpers::translate('from_last_month')}}</span>
-                    </div>
+                    <span class="text-muted small">
+                        {{ __('admin.dash_active_products') }}:
+                        <strong class="text-success">{{ number_format($stats['active_products']) }}</strong>
+                    </span>
                 </div>
             </div>
         </div>
 
+        {{-- Total Pharmacies --}}
         <div class="col-md-6 col-lg-3">
             <div class="card border-0 h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <h6 class="text-muted mb-1">{{\App\Helpers\Helpers::translate('total_orders')}}</h6>
-                            <h3 class="fw-bold mb-0">1,482</h3>
+                            <h6 class="text-muted mb-1">{{ __('admin.dash_total_pharmacies') }}</h6>
+                            <h3 class="fw-bold mb-0">{{ number_format($stats['total_pharmacies']) }}</h3>
                         </div>
-                        <div class="rounded-circle p-2" style="background-color: rgba(16, 185, 129, 0.1);">
-                            <i class="bi bi-box-seam fs-4" style="color: var(--success);"></i>
+                        <div class="rounded-circle p-2" style="background-color:rgba(16,185,129,.12);">
+                            <i class="bi bi-hospital fs-4" style="color:var(--success);"></i>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-success me-2">+8.2%</span>
-                        <span class="text-muted small">{{\App\Helpers\Helpers::translate('from_last_month')}}</span>
-                    </div>
+                    <a href="{{ route('admin.pharmacies.index') }}" class="text-muted small text-decoration-none">
+                        {{ \App\Helpers\Helpers::translate('view_all') }} &rarr;
+                    </a>
                 </div>
             </div>
         </div>
 
+        {{-- Sales Reps --}}
         <div class="col-md-6 col-lg-3">
             <div class="card border-0 h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <h6 class="text-muted mb-1">{{\App\Helpers\Helpers::translate('new_customers')}}</h6>
-                            <h3 class="fw-bold mb-0">382</h3>
+                            <h6 class="text-muted mb-1">{{ __('admin.dash_total_reps') }}</h6>
+                            <h3 class="fw-bold mb-0">{{ number_format($stats['total_reps']) }}</h3>
                         </div>
-                        <div class="rounded-circle p-2" style="background-color: rgba(59, 130, 246, 0.1);">
-                            <i class="bi bi-people fs-4" style="color: var(--info);"></i>
+                        <div class="rounded-circle p-2" style="background-color:rgba(59,130,246,.12);">
+                            <i class="bi bi-people fs-4" style="color:var(--info);"></i>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-success me-2">+5.7%</span>
-                        <span class="text-muted small">{{\App\Helpers\Helpers::translate('from_last_month')}}</span>
-                    </div>
+                    <span class="text-muted small">{{ \App\Helpers\Helpers::translate('rep') }}</span>
                 </div>
             </div>
         </div>
 
+        {{-- Low Stock Alert --}}
         <div class="col-md-6 col-lg-3">
-            <div class="card border-0 h-100">
+            <div class="card border-0 h-100 {{ $stats['low_stock_count'] > 0 ? 'border-warning border' : '' }}">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
-                            <h6 class="text-muted mb-1">{{\App\Helpers\Helpers::translate('conversion_rate')}}</h6>
-                            <h3 class="fw-bold mb-0">3.42%</h3>
+                            <h6 class="text-muted mb-1">{{ __('admin.dash_low_stock') }}</h6>
+                            <h3 class="fw-bold mb-0 {{ $stats['low_stock_count'] > 0 ? 'text-warning' : 'text-success' }}">
+                                {{ number_format($stats['low_stock_count']) }}
+                            </h3>
                         </div>
-                        <div class="rounded-circle p-2" style="background-color: rgba(245, 158, 11, 0.1);">
-                            <i class="bi bi-graph-up-arrow fs-4" style="color: var(--warning);"></i>
+                        <div class="rounded-circle p-2" style="background-color:rgba(245,158,11,.12);">
+                            <i class="bi bi-exclamation-triangle fs-4" style="color:var(--warning);"></i>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <span class="badge bg-danger me-2">-1.2%</span>
-                        <span class="text-muted small">{{\App\Helpers\Helpers::translate('from_last_month')}}</span>
-                    </div>
+                    <span class="text-muted small">{{ __('admin.dash_low_stock_list') }}</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Charts -->
+    {{-- ── Row 2: Order & Financial Stats ─────────────────────────────────── --}}
     <div class="row g-4 mb-4">
-        <div class="col-lg-8">
-            <div class="card border-0">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{\App\Helpers\Helpers::translate('sales_overview')}}</h5>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            {{\App\Helpers\Helpers::translate('this_month')}}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="#">{{\App\Helpers\Helpers::translate('this_week')}}</a></li>
-                            <li><a class="dropdown-item" href="#">{{\App\Helpers\Helpers::translate('this_month')}}</a></li>
-                            <li><a class="dropdown-item" href="#">{{\App\Helpers\Helpers::translate('this_year')}}</a></li>
-                        </ul>
-                    </div>
-                </div>
+
+        {{-- Orders Today --}}
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 h-100">
                 <div class="card-body">
-                    <canvas id="salesChart" height="300"></canvas>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted mb-1">{{ __('admin.dash_orders_today') }}</h6>
+                            <h3 class="fw-bold mb-0">{{ number_format($stats['orders_today']) }}</h3>
+                        </div>
+                        <div class="rounded-circle p-2" style="background-color:rgba(79,70,229,.12);">
+                            <i class="bi bi-receipt fs-4" style="color:var(--primary);"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('admin.orders.index') }}" class="text-muted small text-decoration-none">
+                        {{ \App\Helpers\Helpers::translate('view_all') }} &rarr;
+                    </a>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-4">
-            <div class="card border-0">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{\App\Helpers\Helpers::translate('product_categories')}}</h5>
-                    <button class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-three-dots"></i>
-                    </button>
-                </div>
+        {{-- Pending Orders --}}
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 h-100 {{ $stats['pending_orders'] > 0 ? 'border-warning border' : '' }}">
                 <div class="card-body">
-                    <canvas id="categoryChart" height="300"></canvas>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted mb-1">{{ __('admin.dash_pending_orders') }}</h6>
+                            <h3 class="fw-bold mb-0 {{ $stats['pending_orders'] > 0 ? 'text-warning' : '' }}">
+                                {{ number_format($stats['pending_orders']) }}
+                            </h3>
+                        </div>
+                        <div class="rounded-circle p-2" style="background-color:rgba(245,158,11,.12);">
+                            <i class="bi bi-hourglass-split fs-4" style="color:var(--warning);"></i>
+                        </div>
+                    </div>
+                    <span class="badge bg-warning text-dark">{{ __('admin.order_status.pending') }}</span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Sales This Month --}}
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted mb-1">{{ __('admin.dash_sales_month') }}</h6>
+                            <h3 class="fw-bold mb-0">{{ number_format($stats['sales_month'], 0) }}</h3>
+                        </div>
+                        <div class="rounded-circle p-2" style="background-color:rgba(16,185,129,.12);">
+                            <i class="bi bi-graph-up-arrow fs-4" style="color:var(--success);"></i>
+                        </div>
+                    </div>
+                    <span class="text-muted small">{{ __('admin.dash_confirmed_month') }}: <strong>{{ number_format($stats['confirmed_month']) }}</strong></span>
+                </div>
+            </div>
+        </div>
+
+        {{-- Payments This Month --}}
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h6 class="text-muted mb-1">{{ __('admin.dash_payments_month') }}</h6>
+                            <h3 class="fw-bold mb-0">{{ number_format($stats['payments_month'], 0) }}</h3>
+                        </div>
+                        <div class="rounded-circle p-2" style="background-color:rgba(59,130,246,.12);">
+                            <i class="bi bi-cash-coin fs-4" style="color:var(--info);"></i>
+                        </div>
+                    </div>
+                    <a href="{{ route('admin.payments.index') }}" class="text-muted small text-decoration-none">
+                        {{ \App\Helpers\Helpers::translate('view_all') }} &rarr;
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Orders -->
+    {{-- ── Row 3: Recent Lists ──────────────────────────────────────────────── --}}
     <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="card border-0">
+
+        {{-- Latest Orders --}}
+        <div class="col-lg-5">
+            <div class="card border-0 h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">{{\App\Helpers\Helpers::translate('recent_orders')}}</h5>
-                    <a href="#" class="btn btn-sm btn-link text-decoration-none">{{\App\Helpers\Helpers::translate('view_all')}}</a>
+                    <h6 class="mb-0"><i class="bi bi-receipt me-2"></i>{{ __('admin.dash_recent_orders') }}</h6>
+                    <a href="{{ route('admin.orders.index') }}" class="btn btn-sm btn-link text-decoration-none p-0">
+                        {{ \App\Helpers\Helpers::translate('view_all') }}
+                    </a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="bg-light">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>{{\App\Helpers\Helpers::translate('order_id')}}</th>
-                                    <th>{{\App\Helpers\Helpers::translate('customer')}}</th>
-                                    <th>{{\App\Helpers\Helpers::translate('product')}}</th>
-                                    <th>{{\App\Helpers\Helpers::translate('date')}}</th>
-                                    <th>{{\App\Helpers\Helpers::translate('amount')}}</th>
-                                    <th>{{\App\Helpers\Helpers::translate('status')}}</th>
+                                    <th class="ps-3">{{ \App\Helpers\Helpers::translate('order_number') }}</th>
+                                    <th>{{ \App\Helpers\Helpers::translate('pharmacy') }}</th>
+                                    <th>{{ \App\Helpers\Helpers::translate('total') }}</th>
+                                    <th>{{ \App\Helpers\Helpers::translate('status') }}</th>
                                 </tr>
                             </thead>
                             <tbody>
+                                @forelse($recentOrders as $ord)
+                                @php $sc = ['draft'=>'secondary','pending'=>'warning','confirmed'=>'success','cancelled'=>'danger']; @endphp
                                 <tr>
-                                    <td>#ORD-7843</td>
-                                    <td>John Smith</td>
-                                    <td>Protein Powder</td>
-                                    <td>Aug 12, 2023</td>
-                                    <td>$59.99</td>
-                                    <td><span class="badge bg-success">{{\App\Helpers\Helpers::translate('completed')}}</span></td>
+                                    <td class="ps-3">
+                                        <a href="{{ route('admin.orders.show', $ord) }}" class="text-decoration-none fw-medium">
+                                            {{ $ord->order_number ?? '#'.$ord->id }}
+                                        </a>
+                                    </td>
+                                    <td class="text-truncate" style="max-width:110px;">{{ $ord->pharmacy?->name ?? '-' }}</td>
+                                    <td>{{ number_format($ord->total, 0) }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ $sc[$ord->status] ?? 'secondary' }}">
+                                            {{ __('admin.order_status.' . $ord->status) }}
+                                        </span>
+                                    </td>
                                 </tr>
+                                @empty
                                 <tr>
-                                    <td>#ORD-7842</td>
-                                    <td>Emma Johnson</td>
-                                    <td>Resistance Bands</td>
-                                    <td>Aug 11, 2023</td>
-                                    <td>$24.99</td>
-                                    <td><span class="badge bg-warning text-dark">{{\App\Helpers\Helpers::translate('processing')}}</span></td>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        {{ \App\Helpers\Helpers::translate('no_records_found') }}
+                                    </td>
                                 </tr>
-                                <!-- More rows... -->
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Rest of the content... -->
-    </div>
+
+        {{-- Latest Payments --}}
+        <div class="col-lg-4">
+            <div class="card border-0 h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-cash-coin me-2"></i>{{ __('admin.dash_recent_payments') }}</h6>
+                    <a href="{{ route('admin.payments.index') }}" class="btn btn-sm btn-link text-decoration-none p-0">
+                        {{ \App\Helpers\Helpers::translate('view_all') }}
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">{{ \App\Helpers\Helpers::translate('pharmacy') }}</th>
+                                    <th>{{ __('admin.payment_amount') }}</th>
+                                    <th>{{ __('admin.payment_paid_at') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($recentPayments as $pay)
+                                <tr>
+                                    <td class="ps-3 text-truncate" style="max-width:120px;">
+                                        {{ $pay->pharmacy?->name ?? '-' }}
+                                    </td>
+                                    <td class="fw-medium text-success">{{ number_format($pay->amount, 0) }}</td>
+                                    <td>{{ $pay->paid_at?->format('d M') }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">
+                                        {{ \App\Helpers\Helpers::translate('no_records_found') }}
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Low Stock Alert --}}
+        <div class="col-lg-3">
+            <div class="card border-0 h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>{{ __('admin.dash_low_stock_list') }}
+                    </h6>
+                    <span class="badge bg-warning text-dark">{{ $stats['low_stock_count'] }}</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">{{ \App\Helpers\Helpers::translate('product') }}</th>
+                                    <th class="text-center">{{ __('admin.dash_current_stock') }}</th>
+                                    <th class="text-center">{{ __('admin.dash_min_stock') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($lowStockProducts as $prod)
+                                <tr>
+                                    <td class="ps-3 text-truncate" style="max-width:120px;">
+                                        {{ $prod->name }}
+                                    </td>
+                                    <td class="text-center fw-bold {{ $prod->current_stock <= 0 ? 'text-danger' : 'text-warning' }}">
+                                        {{ $prod->current_stock }}
+                                    </td>
+                                    <td class="text-center text-muted">{{ $prod->min_stock }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-success">
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        {{ \App\Helpers\Helpers::translate('no_records_found') }}
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>{{-- end row 3 --}}
 </div>
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    // Sales Chart
-    const salesCtx = document.getElementById('salesChart').getContext('2d');
-    const salesChart = new Chart(salesCtx, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            datasets: [{
-                label: 'Sales',
-                data: [12500, 15000, 17500, 14000, 18000, 19500, 22000, 24000, 23000, 25000, 27000, 24500],
-                borderColor: '#4f46e5',
-                backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                tension: 0.4,
-                fill: true
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        borderDash: [2, 4],
-                        drawBorder: false
-                    }
-                },
-                x: {
-                    grid: {
-                        display: false
-                    }
-                }
-            }
-        }
-    });
-
-    // Category Chart
-    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-    const categoryChart = new Chart(categoryCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Proteins', 'Pre-Workout', 'Vitamins', 'Weight Loss', 'Accessories'],
-            datasets: [{
-                data: [35, 25, 15, 15, 10],
-                backgroundColor: [
-                    '#4f46e5',
-                    '#10b981',
-                    '#3b82f6',
-                    '#f59e0b',
-                    '#64748b'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            },
-            cutout: '70%'
-        }
-    });
-</script>
-
 <style>
-    .bg-soft-primary {
-        background-color: rgba(79, 70, 229, 0.1) !important;
-    }
-
-    .text-primary {
-        color: var(--primary) !important;
-    }
+    .bg-soft-primary { background-color: rgba(79,70,229,.1) !important; }
+    .text-primary    { color: var(--primary) !important; }
 </style>
 @endpush

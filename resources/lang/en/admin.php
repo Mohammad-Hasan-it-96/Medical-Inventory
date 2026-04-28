@@ -6,6 +6,23 @@
  */
 return [
 
+    // ── Dashboard stats & panels ────────────────────────────────────────────
+    'dash_total_products'   => 'Total Products',
+    'dash_active_products'  => 'Active Products',
+    'dash_total_pharmacies' => 'Pharmacies',
+    'dash_total_reps'       => 'Sales Reps',
+    'dash_orders_today'     => 'Orders Today',
+    'dash_pending_orders'   => 'Pending Orders',
+    'dash_confirmed_month'  => 'Confirmed This Month',
+    'dash_sales_month'      => 'Sales This Month',
+    'dash_payments_month'   => 'Payments This Month',
+    'dash_low_stock'        => 'Low Stock Products',
+    'dash_recent_orders'    => 'Latest Orders',
+    'dash_recent_payments'  => 'Latest Payments',
+    'dash_low_stock_list'   => 'Low Stock Alert',
+    'dash_current_stock'    => 'Stock',
+    'dash_min_stock'        => 'Min',
+
     // ── Order / payment statuses ────────────────────────────────────────────
     'order_status' => [
         'all'       => 'All',
@@ -66,6 +83,7 @@ return [
     'payment_order'      => 'Related Order (optional)',
     'select_pharmacy'    => 'Select Pharmacy',
     'select_order'       => 'No related order',
+    'select_pharmacy_first' => 'Select a pharmacy first to filter orders',
 
     // ── Search / filter placeholders ────────────────────────────────────────
     'placeholder_name_phone'      => 'Name or phone…',
