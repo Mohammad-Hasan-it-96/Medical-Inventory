@@ -19,12 +19,17 @@ return [
 
     // ── Stock-movement types ────────────────────────────────────────────────
     'stock_type' => [
-        'all'        => 'All',
-        'in'         => 'In',
-        'out'        => 'Out',
-        'adjustment' => 'Adjustment',
-        'return'     => 'Return',
+        'all'         => 'All',
+        'opening'     => 'Opening',
+        'purchase'    => 'Purchase',
+        'sale'        => 'Sale',
+        'sale_cancel' => 'Sale Cancel',
+        'adjustment'  => 'Adjustment',
+        'return_in'   => 'Return In',
+        'return_out'  => 'Return Out',
     ],
+    'stock_adjust_title'   => 'Record Manual Adjustment',
+    'stock_current'        => 'Current Stock',
 
     // ── Orders / show page ──────────────────────────────────────────────────
     'order_title'             => 'Order #:number',

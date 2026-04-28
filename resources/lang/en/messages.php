@@ -35,6 +35,10 @@ return [
     'user_updated' => 'User updated successfully.',
     'user_deleted' => 'User deleted successfully.',
 
+    // ── Stock ─────────────────────────────────────────────────────────────────
+    'adjustment_created' => 'Stock adjustment recorded successfully.',
+    'adjustment_failed'  => 'Could not record adjustment: :error',
+
     // ── Orders ───────────────────────────────────────────────────────────────
     'order_confirmed' => 'Order confirmed successfully.',
     'order_cancelled' => 'Order cancelled successfully.',

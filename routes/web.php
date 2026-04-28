@@ -130,7 +130,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
     });
 
     // ── Stock Movements ───────────────────────────────────────────────────────
-    Route::get('stock-movements', [StockMovementController::class, 'index'])->name('stock-movements.index');
+    Route::get('stock-movements',        [StockMovementController::class, 'index'])->name('stock-movements.index');
+    Route::post('stock-movements/adjust',[StockMovementController::class, 'adjust'])->name('stock-movements.adjust');
 
     // ── Payments ──────────────────────────────────────────────────────────────
     Route::get('payments', [PaymentController::class, 'index'])->name('payments.index');
