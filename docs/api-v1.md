@@ -324,7 +324,7 @@ Fetch only records that have been created, updated, or deleted since the last sy
 | `search` | string | Match on name or barcode |
 | `company_id` | integer | Filter by manufacturer |
 | `updated_after` | datetime | Incremental sync |
-| `with_stock` | `1` / `0` | Append `current_stock` field (adds 1 DB query per item) |
+| `with_stock` | `1` / `0` | Append `current_stock` field; `current_stock` is calculated using a batch aggregate query when `with_stock=1` |
 | `page` | integer | Default 1, 15 items per page |
 
 ### Success response `200`
@@ -380,7 +380,7 @@ Fetch only records that have been created, updated, or deleted since the last sy
 }
 ```
 
-> `current_stock` is only present when `?with_stock=1` is passed.  
+> `current_stock` is only present when `?with_stock=1` is passed. All stock values for the current page are resolved in a **single batch aggregate query** (`GROUP BY product_id`), so there is no per-item overhead.  
 > `net_price_syp` and `public_price_syp` are only present when the product has a price record.
 
 ---

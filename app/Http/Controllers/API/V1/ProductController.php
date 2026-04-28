@@ -21,7 +21,7 @@ class ProductController extends BaseController
      *   ?search=term          – name or barcode
      *   ?company_id=1         – filter by company
      *   ?updated_after=Y-m-d  – incremental sync support
-     *   ?with_stock=1         – append current_stock to each product (costs 1 query/item)
+     *   ?with_stock=1         – append current_stock; resolved via a single batch aggregate query (GROUP BY product_id)
      *   ?page=1               – paginated (15 per page)
      */
     public function index(Request $request): JsonResponse
