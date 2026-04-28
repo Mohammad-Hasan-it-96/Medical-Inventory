@@ -101,7 +101,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
     });
 
     // ── Companies ─────────────────────────────────────────────────────────────
-    Route::prefix('companies')->name('companies.')->group(function () {
+    Route::prefix('companies')->name('companies.')->middleware('moderator')->group(function () {
         Route::get('',              [CompanyController::class, 'index'])->name('index');
         Route::get('create',        [CompanyController::class, 'create'])->name('create');
         Route::post('store',        [CompanyController::class, 'store'])->name('store');
@@ -111,7 +111,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
     });
 
     // ── Pharmacies ────────────────────────────────────────────────────────────
-    Route::prefix('pharmacies')->name('pharmacies.')->group(function () {
+    Route::prefix('pharmacies')->name('pharmacies.')->middleware('moderator')->group(function () {
         Route::get('',                [PharmacyController::class, 'index'])->name('index');
         Route::get('create',          [PharmacyController::class, 'create'])->name('create');
         Route::post('store',          [PharmacyController::class, 'store'])->name('store');
@@ -122,7 +122,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
     });
 
     // ── Orders ────────────────────────────────────────────────────────────────
-    Route::prefix('orders')->name('orders.')->group(function () {
+    Route::prefix('orders')->name('orders.')->middleware('moderator')->group(function () {
         Route::get('',                       [OrderController::class, 'index'])->name('index');
         Route::get('{order}',                [OrderController::class, 'show'])->name('show');
         Route::post('{order}/confirm',       [OrderController::class, 'confirm'])->name('confirm');
@@ -130,11 +130,13 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
     });
 
     // ── Stock Movements ───────────────────────────────────────────────────────
-    Route::get('stock-movements',        [StockMovementController::class, 'index'])->name('stock-movements.index');
-    Route::post('stock-movements/adjust',[StockMovementController::class, 'adjust'])->name('stock-movements.adjust');
+    Route::middleware('moderator')->group(function () {
+        Route::get('stock-movements',         [StockMovementController::class, 'index'])->name('stock-movements.index');
+        Route::post('stock-movements/adjust', [StockMovementController::class, 'adjust'])->name('stock-movements.adjust');
+    });
 
     // ── Payments ──────────────────────────────────────────────────────────────
-    Route::prefix('payments')->name('payments.')->group(function () {
+    Route::prefix('payments')->name('payments.')->middleware('moderator')->group(function () {
         Route::get('',          [PaymentController::class, 'index'])->name('index');
         Route::get('create',    [PaymentController::class, 'create'])->name('create');
         Route::post('store',    [PaymentController::class, 'store'])->name('store');

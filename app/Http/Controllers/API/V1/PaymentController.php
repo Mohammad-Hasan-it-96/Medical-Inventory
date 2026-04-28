@@ -9,6 +9,7 @@ use App\Models\Pharmacy;
 use App\Services\PaymentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class PaymentController extends BaseController
@@ -44,13 +45,10 @@ class PaymentController extends BaseController
 
         // Optional filters.
         if ($pharmacyId = $request->integer('pharmacy_id')) {
-            // Additional check: rep must own this pharmacy.
+            // Rep must own this pharmacy.
             if ($user->hasRole('rep')) {
-                $assigned = Pharmacy::where('id', $pharmacyId)
-                    ->where('rep_id', $user->id)
-                    ->exists();
-
-                if (! $assigned) {
+                $pharmacy = Pharmacy::find($pharmacyId);
+                if (! $pharmacy || Gate::denies('view', $pharmacy)) {
                     return $this->sendError('Forbidden.', [], 403);
                 }
             }
@@ -105,11 +103,8 @@ class PaymentController extends BaseController
 
         // Rep may only record payments for their own assigned pharmacies.
         if ($user->hasRole('rep')) {
-            $assigned = Pharmacy::where('id', $data['pharmacy_id'])
-                ->where('rep_id', $user->id)
-                ->exists();
-
-            if (! $assigned) {
+            $pharmacy = Pharmacy::find($data['pharmacy_id']);
+            if (! $pharmacy || Gate::denies('view', $pharmacy)) {
                 return $this->sendError('Forbidden. This pharmacy is not assigned to you.', [], 403);
             }
         }

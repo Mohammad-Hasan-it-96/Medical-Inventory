@@ -9,6 +9,7 @@ use App\Models\Pharmacy;
 use App\Services\StatementService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class StatementController extends BaseController
 {
@@ -35,7 +36,7 @@ class StatementController extends BaseController
         $user = $request->user();
 
         // Reps can only view their own assigned pharmacies.
-        if ($user->hasRole('rep') && $pharmacy->rep_id !== $user->id) {
+        if (Gate::denies('view', $pharmacy)) {
             return $this->sendError('Forbidden.', [], 403);
         }
 

@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 
 class OrderController extends BaseController
@@ -134,7 +135,7 @@ class OrderController extends BaseController
      */
     public function show(Order $order): JsonResponse
     {
-        if (! $this->canAccessOrder($order)) {
+        if (Gate::denies('view', $order)) {
             return $this->sendError('Forbidden.', [], 403);
         }
 
@@ -153,7 +154,7 @@ class OrderController extends BaseController
      */
     public function confirm(Order $order): JsonResponse
     {
-        if (! $this->canAccessOrder($order)) {
+        if (Gate::denies('confirm', $order)) {
             return $this->sendError('Forbidden.', [], 403);
         }
 
@@ -180,7 +181,7 @@ class OrderController extends BaseController
      */
     public function cancel(Order $order): JsonResponse
     {
-        if (! $this->canAccessOrder($order)) {
+        if (Gate::denies('cancel', $order)) {
             return $this->sendError('Forbidden.', [], 403);
         }
 
@@ -194,25 +195,6 @@ class OrderController extends BaseController
             new OrderResource($order->load(['pharmacy', 'orderItems.product'])),
             'Order cancelled successfully.'
         );
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Helpers
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /**
-     * Rep users can only access orders assigned to them.
-     * Admin / moderator can access any order.
-     */
-    private function canAccessOrder(Order $order): bool
-    {
-        $user = auth()->user();
-
-        if (in_array($user->role, ['admin', 'moderator'])) {
-            return true;
-        }
-
-        return $order->rep_id === $user->id;
     }
 }
 
