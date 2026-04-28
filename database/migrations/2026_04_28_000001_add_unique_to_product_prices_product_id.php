@@ -19,13 +19,30 @@ return new class extends Migration
     public function up(): void
     {
         // Deduplicate: keep only the row with the largest id per product.
-        DB::statement('
-            DELETE pp1
-            FROM product_prices pp1
-            INNER JOIN product_prices pp2
-                ON pp1.product_id = pp2.product_id
-               AND pp1.id < pp2.id
-        ');
+        // Use driver-aware syntax so this works on both MySQL (production) and
+        // SQLite (test environment).
+        $driver = DB::getDriverName();
+
+        if ($driver === 'sqlite') {
+            // SQLite supports DELETE with a subquery but not multi-table DELETE.
+            DB::statement('
+                DELETE FROM product_prices
+                WHERE id NOT IN (
+                    SELECT MAX(id)
+                    FROM product_prices
+                    GROUP BY product_id
+                )
+            ');
+        } else {
+            // MySQL / MariaDB multi-table DELETE.
+            DB::statement('
+                DELETE pp1
+                FROM product_prices pp1
+                INNER JOIN product_prices pp2
+                    ON pp1.product_id = pp2.product_id
+                   AND pp1.id < pp2.id
+            ');
+        }
 
         Schema::table('product_prices', function (Blueprint $table) {
             // Drop the plain index added in the create migration, then add
