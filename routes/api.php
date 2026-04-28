@@ -53,6 +53,7 @@ Route::prefix('v1')->middleware('auth:api')->group(function () {
     Route::post('orders/{order}/cancel',        [V1Order::class, 'cancel']);
 
     // Payments
+    Route::get('payments',  [V1Payment::class, 'index']);
     Route::post('payments', [V1Payment::class, 'store']);
 
     // Rep dashboard
