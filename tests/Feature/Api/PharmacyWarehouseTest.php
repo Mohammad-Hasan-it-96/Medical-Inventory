@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\AccountEntry;
 use App\Models\Company;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Pharmacy;
 use App\Models\Product;
 use App\Models\ProductPrice;
@@ -21,9 +22,21 @@ use Tests\TestCase;
 /**
  * Feature tests for the pharmacy warehouse API (v1).
  *
+ * Ten tests covering the ten requested behaviours:
+ *  1.  Admin can login and get a Passport token
+ *  2.  Rep can access their assigned pharmacies only
+ *  3.  Rep can create an order for their assigned pharmacy
+ *  4.  Rep CANNOT create an order for an unassigned pharmacy (403)
+ *  5.  Confirming an order creates TYPE_SALE stock movements
+ *  6.  Confirming an order creates a TYPE_DEBIT account entry
+ *  7.  Cancelling a confirmed order creates TYPE_SALE_CANCEL movement
+ *  8.  Recording a payment creates a TYPE_CREDIT account entry
+ *  9.  Pharmacy statement balance is arithmetically correct
+ * 10.  Unauthenticated requests return 401
+ *
  * Passport::actingAs() is used for all protected-route tests so no real
- * OAuth clients/tokens are needed — only the login-endpoint test (#1)
- * installs Passport to exercise the full auth flow.
+ * OAuth clients/tokens are needed — only tests 1 & 2 exercise the full
+ * auth flow.
  */
 class PharmacyWarehouseTest extends TestCase
 {
@@ -35,19 +48,17 @@ class PharmacyWarehouseTest extends TestCase
     private User     $rep1;
     private User     $rep2;
     private Product  $product;
-    private Pharmacy $pharmacyRep1;  // assigned to rep1
-    private Pharmacy $pharmacyRep2;  // assigned to rep2
+    private Pharmacy $pharmacyRep1;   // assigned to rep1
+    private Pharmacy $pharmacyRep2;   // assigned to rep2
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        // Generate Passport RSA encryption keys into storage/ (no DB writes).
-        // Safe to call every time — --force overwrites stale keys.
+        // Generate Passport RSA keys (safe to call repeatedly — --force overwrites).
         $this->artisan('passport:keys', ['--force' => true]);
 
-        // Insert a personal-access client directly into the already-migrated tables
-        // (RefreshDatabase handles the schema; we only need the client row).
+        // Seed a personal-access client so createToken() works inside tests.
         $client = PassportClient::forceCreate([
             'user_id'                => null,
             'name'                   => 'Test Personal Access Client',
@@ -64,8 +75,8 @@ class PharmacyWarehouseTest extends TestCase
     }
 
     /**
-     * Create the minimum data needed by every test in one place.
-     * Uses simple creates/inserts — no factories needed for correctness.
+     * Create the minimum data needed by every test.
+     * Direct create() calls — no factories needed for correctness.
      */
     private function buildFixtures(): void
     {
@@ -115,7 +126,7 @@ class PharmacyWarehouseTest extends TestCase
             'public_price_syp' => 350,
         ]);
 
-        // Opening stock: 100 units available
+        // Opening stock: 100 units
         StockMovement::create([
             'product_id' => $this->product->id,
             'type'       => 'opening',
@@ -143,14 +154,13 @@ class PharmacyWarehouseTest extends TestCase
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 1 — Rep can login and receive a Passport token
+    //  Test 1 — Admin can login via the API and receive a Passport token
     // ═════════════════════════════════════════════════════════════════════════
 
-    public function test_rep_can_login_and_get_token(): void
+    public function test_admin_can_login_and_get_token(): void
     {
-
         $response = $this->postJson('/api/login', [
-            'email'    => 'rep1@test.com',
+            'email'    => 'admin@test.com',
             'password' => 'password',
         ]);
 
@@ -161,25 +171,12 @@ class PharmacyWarehouseTest extends TestCase
                      'data' => ['token', 'name'],
                      'message',
                  ]);
+
+        $this->assertNotEmpty($response->json('data.token'));
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 2 — Rep can list products
-    // ═════════════════════════════════════════════════════════════════════════
-
-    public function test_rep_can_list_products(): void
-    {
-        Passport::actingAs($this->rep1);
-
-        $response = $this->getJson('/api/v1/products');
-
-        $response->assertOk()
-                 ->assertJson(['success' => true])
-                 ->assertJsonPath('data.0.name', 'باراسيتامول 500 مج');
-    }
-
-    // ═════════════════════════════════════════════════════════════════════════
-    //  Test 3 — Rep can list ONLY their assigned pharmacies
+    //  Test 2 — Rep can access ONLY their assigned pharmacies
     // ═════════════════════════════════════════════════════════════════════════
 
     public function test_rep_sees_only_own_pharmacies(): void
@@ -193,17 +190,17 @@ class PharmacyWarehouseTest extends TestCase
         $names = collect($response->json('data'))->pluck('name');
 
         // rep1's pharmacy is present
-        $this->assertTrue($names->contains('صيدلية الأمل'));
+        $this->assertTrue($names->contains('صيدلية الأمل'), 'rep1 should see their own pharmacy');
 
-        // rep2's pharmacy is NOT present
-        $this->assertFalse($names->contains('صيدلية النور'));
+        // rep2's pharmacy must NOT be visible
+        $this->assertFalse($names->contains('صيدلية النور'), 'rep1 must not see rep2 pharmacy');
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 4 — Rep can create an order for their pharmacy
+    //  Test 3 — Rep CAN create an order for their assigned pharmacy
     // ═════════════════════════════════════════════════════════════════════════
 
-    public function test_rep_can_create_order(): void
+    public function test_rep_can_create_order_for_assigned_pharmacy(): void
     {
         Passport::actingAs($this->rep1);
 
@@ -211,14 +208,12 @@ class PharmacyWarehouseTest extends TestCase
             'pharmacy_id' => $this->pharmacyRep1->id,
             'discount'    => 0,
             'notes'       => 'طلبية تجريبية',
-            'items'       => [
-                [
-                    'product_id' => $this->product->id,
-                    'quantity'   => 5,
-                    'unit_price' => 350,
-                    'discount'   => 0,
-                ],
-            ],
+            'items'       => [[
+                'product_id' => $this->product->id,
+                'quantity'   => 5,
+                'unit_price' => 350,
+                'discount'   => 0,
+            ]],
         ]);
 
         $response->assertOk()
@@ -239,10 +234,38 @@ class PharmacyWarehouseTest extends TestCase
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 5 — Confirming an order decreases stock via stock_movements
+    //  Test 4 — Rep CANNOT create an order for an unassigned pharmacy
     // ═════════════════════════════════════════════════════════════════════════
 
-    public function test_confirming_order_decreases_stock(): void
+    public function test_rep_cannot_create_order_for_unassigned_pharmacy(): void
+    {
+        // rep1 is trying to create an order for pharmacyRep2 (belongs to rep2)
+        Passport::actingAs($this->rep1);
+
+        $response = $this->postJson('/api/v1/orders', [
+            'pharmacy_id' => $this->pharmacyRep2->id,
+            'discount'    => 0,
+            'items'       => [[
+                'product_id' => $this->product->id,
+                'quantity'   => 5,
+                'unit_price' => 350,
+                'discount'   => 0,
+            ]],
+        ]);
+
+        $response->assertForbidden(); // 403
+
+        $this->assertDatabaseMissing('orders', [
+            'pharmacy_id' => $this->pharmacyRep2->id,
+            'rep_id'      => $this->rep1->id,
+        ]);
+    }
+
+    // ═════════════════════════════════════════════════════════════════════════
+    //  Test 5 — Confirming an order creates TYPE_SALE stock movements
+    // ═════════════════════════════════════════════════════════════════════════
+
+    public function test_confirming_order_creates_sale_stock_movements(): void
     {
         Passport::actingAs($this->rep1);
 
@@ -257,60 +280,64 @@ class PharmacyWarehouseTest extends TestCase
             'quantity'   => -10,
         ]);
 
-        // Net stock should now be 100 (opening) − 10 (sale) = 90
+        // Net stock: 100 (opening) − 10 (sale) = 90
         $netStock = StockMovement::where('product_id', $this->product->id)->sum('quantity');
         $this->assertEquals(90, $netStock);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 6 — Confirming an order creates a debit account_entry
+    //  Test 6 — Confirming an order creates a TYPE_DEBIT account entry
     // ═════════════════════════════════════════════════════════════════════════
 
     public function test_confirming_order_creates_debit_account_entry(): void
     {
         Passport::actingAs($this->rep1);
 
-        $order = $this->createPendingOrder(qty: 10, unitPrice: 350);
+        $order = $this->createPendingOrder(qty: 10, unitPrice: 350);  // total = 3500
 
         $this->postJson("/api/v1/orders/{$order->id}/confirm")->assertOk();
 
         $this->assertDatabaseHas('account_entries', [
             'pharmacy_id' => $this->pharmacyRep1->id,
             'order_id'    => $order->id,
-            'type'        => 'debit',
-            'amount'      => 3500.00,
+            'type'        => AccountEntry::TYPE_DEBIT,
+            'amount'      => '3500.00',
         ]);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 7 — Rep can record a payment
+    //  Test 7 — Cancelling a confirmed order creates TYPE_SALE_CANCEL movement
     // ═════════════════════════════════════════════════════════════════════════
 
-    public function test_rep_can_record_payment(): void
+    public function test_cancelling_confirmed_order_creates_sale_cancel_movement(): void
     {
         Passport::actingAs($this->rep1);
 
-        $response = $this->postJson('/api/v1/payments', [
-            'pharmacy_id' => $this->pharmacyRep1->id,
-            'amount'      => 5000,
-            'method'      => 'cash',
-            'notes'       => 'دفعة نقدية',
+        $order = $this->createPendingOrder(qty: 15);
+
+        $this->postJson("/api/v1/orders/{$order->id}/confirm")->assertOk();
+        $this->postJson("/api/v1/orders/{$order->id}/cancel")->assertOk();
+
+        // TYPE_SALE_CANCEL movement with +15 must exist (positive — restores stock)
+        $this->assertDatabaseHas('stock_movements', [
+            'product_id' => $this->product->id,
+            'type'       => StockMovement::TYPE_SALE_CANCEL,
+            'quantity'   => 15,
         ]);
 
-        $response->assertOk()
-                 ->assertJson(['success' => true])
-                 ->assertJsonPath('data.amount', '5000.00')
-                 ->assertJsonPath('data.method', 'cash');
+        // Net: 100 (opening) − 15 (sale) + 15 (sale_cancel) = 100
+        $netStock = StockMovement::where('product_id', $this->product->id)->sum('quantity');
+        $this->assertEquals(100, $netStock);
 
-        $this->assertDatabaseHas('payments', [
-            'pharmacy_id' => $this->pharmacyRep1->id,
-            'amount'      => 5000,
-            'method'      => 'cash',
+        // A TYPE_CREDIT entry must also reverse the original debit
+        $this->assertDatabaseHas('account_entries', [
+            'order_id' => $order->id,
+            'type'     => AccountEntry::TYPE_CREDIT,
         ]);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 8 — Recording a payment creates a credit account_entry
+    //  Test 8 — Recording a payment creates a TYPE_CREDIT account entry
     // ═════════════════════════════════════════════════════════════════════════
 
     public function test_payment_creates_credit_account_entry(): void
@@ -320,49 +347,71 @@ class PharmacyWarehouseTest extends TestCase
         $this->postJson('/api/v1/payments', [
             'pharmacy_id' => $this->pharmacyRep1->id,
             'amount'      => 7000,
-            'method'      => 'bank',
-        ])->assertOk();
+            'method'      => 'cash',
+        ])->assertOk()->assertJson(['success' => true]);
+
+        $this->assertDatabaseHas('payments', [
+            'pharmacy_id' => $this->pharmacyRep1->id,
+            'amount'      => 7000,
+        ]);
 
         $this->assertDatabaseHas('account_entries', [
             'pharmacy_id' => $this->pharmacyRep1->id,
-            'type'        => 'credit',
-            'amount'      => 7000.00,
+            'type'        => AccountEntry::TYPE_CREDIT,
+            'amount'      => '7000.00',
         ]);
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 9 — Cancelling a confirmed order reverses stock
+    //  Test 9 — Pharmacy statement balance is arithmetically correct
     // ═════════════════════════════════════════════════════════════════════════
 
-    public function test_cancelling_confirmed_order_reverses_stock(): void
+    public function test_pharmacy_statement_balance_is_correct(): void
     {
-        Passport::actingAs($this->rep1);
+        Passport::actingAs($this->admin);
 
-        $order = $this->createPendingOrder(qty: 15);
+        // Build a known ledger for pharmacyRep1 (opening_balance = 0):
+        //   Debit  entry  +12000  (order sale)
+        //   Credit entry  - 5000  (payment)
+        //   Expected balance = 0 + 12000 - 5000 = 7000
 
-        $this->postJson("/api/v1/orders/{$order->id}/confirm")->assertOk();
-        $this->postJson("/api/v1/orders/{$order->id}/cancel")->assertOk();
-
-        // sale_cancel movement with +15 must exist
-        $this->assertDatabaseHas('stock_movements', [
-            'product_id' => $this->product->id,
-            'type'       => 'sale_cancel',
-            'quantity'   => 15,
+        AccountEntry::create([
+            'pharmacy_id' => $this->pharmacyRep1->id,
+            'type'        => AccountEntry::TYPE_DEBIT,
+            'amount'      => 12000,
+            'description' => 'Test sale',
+            'entry_date'  => now()->toDateString(),
+            'created_by'  => $this->admin->id,
         ]);
 
-        // Net stock: 100 (opening) − 15 (sale) + 15 (sale_cancel) = 100
-        $netStock = StockMovement::where('product_id', $this->product->id)->sum('quantity');
-        $this->assertEquals(100, $netStock);
-
-        // A credit entry should also have been created to reverse the debit
-        $this->assertDatabaseHas('account_entries', [
-            'order_id' => $order->id,
-            'type'     => 'credit',
+        AccountEntry::create([
+            'pharmacy_id' => $this->pharmacyRep1->id,
+            'type'        => AccountEntry::TYPE_CREDIT,
+            'amount'      => 5000,
+            'description' => 'Test payment',
+            'entry_date'  => now()->toDateString(),
+            'created_by'  => $this->admin->id,
         ]);
+
+        $response = $this->getJson(
+            "/api/v1/pharmacies/{$this->pharmacyRep1->id}/statement"
+        );
+
+        $response->assertOk()
+                 ->assertJson(['success' => true]);
+
+        // Use (float) cast because json_encode serialises 12000.0 as the integer 12000
+        $data = $response->json('data');
+        $this->assertEquals(12000.0, (float) $data['total_debit'],  'total_debit mismatch');
+        $this->assertEquals(5000.0,  (float) $data['total_credit'], 'total_credit mismatch');
+        $this->assertEquals(7000.0,  (float) $data['balance'],      'balance mismatch');
+
+        // Entries list must contain both rows
+        $this->assertCount(2, $response->json('data.entries'));
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Test 10 — Unauthenticated requests are rejected with 401
+    //  Test 10 — Unauthenticated requests return 401
     // ═════════════════════════════════════════════════════════════════════════
 
     public function test_unauthenticated_requests_are_rejected(): void
@@ -373,35 +422,32 @@ class PharmacyWarehouseTest extends TestCase
             ['GET',  '/api/v1/orders'],
             ['POST', '/api/v1/orders'],
             ['POST', '/api/v1/payments'],
-            ['GET',  '/api/v1/rep/dashboard'],
+            ['GET',  "/api/v1/pharmacies/{$this->pharmacyRep1->id}/statement"],
         ];
 
         foreach ($endpoints as [$method, $uri]) {
-            $response = $this->json($method, $uri);
-            $response->assertUnauthorized(); // 401
+            $this->json($method, $uri)->assertUnauthorized(); // 401
         }
     }
 
     // ═════════════════════════════════════════════════════════════════════════
-    //  Helpers
+    //  Helper
     // ═════════════════════════════════════════════════════════════════════════
 
     /**
-     * Create a pending order for rep1's pharmacy and return the Order model.
+     * POST a pending order for rep1's pharmacy and return the persisted Order.
      */
     private function createPendingOrder(int $qty = 5, float $unitPrice = 350): Order
     {
         $response = $this->postJson('/api/v1/orders', [
             'pharmacy_id' => $this->pharmacyRep1->id,
             'discount'    => 0,
-            'items'       => [
-                [
-                    'product_id' => $this->product->id,
-                    'quantity'   => $qty,
-                    'unit_price' => $unitPrice,
-                    'discount'   => 0,
-                ],
-            ],
+            'items'       => [[
+                'product_id' => $this->product->id,
+                'quantity'   => $qty,
+                'unit_price' => $unitPrice,
+                'discount'   => 0,
+            ]],
         ]);
 
         $response->assertOk();

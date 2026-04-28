@@ -96,8 +96,22 @@ class OrderController extends BaseController
             'items.*.discount'      => 'nullable|numeric|min:0',
         ]);
 
+        $user  = auth()->user();
+
+        // Rep users can only create orders for pharmacies assigned to them.
+        if ($user->isRep()) {
+            $pharmacy = \App\Models\Pharmacy::find($data['pharmacy_id']);
+            if (! $pharmacy || $pharmacy->rep_id !== $user->id) {
+                return $this->sendError(
+                    'Forbidden: you can only create orders for your assigned pharmacies.',
+                    [],
+                    403
+                );
+            }
+        }
+
         // Rep users automatically become the rep for this order.
-        $repId = (auth()->user()->role === 'rep') ? auth()->id() : ($data['rep_id'] ?? null);
+        $repId = $user->isRep() ? $user->id : ($data['rep_id'] ?? null);
 
         try {
             $order = $this->orderService->createOrder($data, $repId);
