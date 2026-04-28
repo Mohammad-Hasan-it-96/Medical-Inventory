@@ -30,7 +30,7 @@ class StatementController extends BaseController
      *   rep   → can only access pharmacies assigned to them
      *   admin → any pharmacy
      */
-    public function show(Request $request, Pharmacy $pharmacy): JsonResponse
+    public function pharmacy(Request $request, Pharmacy $pharmacy): JsonResponse
     {
         $user = auth()->user();
 

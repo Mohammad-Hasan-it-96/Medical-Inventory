@@ -3,9 +3,16 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\RegisterController;
 use App\Http\Controllers\API\ProductController;
-use App\Http\Controllers\API\V1;
+use App\Http\Controllers\API\V1\CompanyController      as V1Company;
+use App\Http\Controllers\API\V1\DashboardController    as V1Dashboard;
+use App\Http\Controllers\API\V1\OrderController        as V1Order;
+use App\Http\Controllers\API\V1\PaymentController      as V1Payment;
+use App\Http\Controllers\API\V1\PharmacyController     as V1Pharmacy;
+use App\Http\Controllers\API\V1\ProductController      as V1Product;
+use App\Http\Controllers\API\V1\StatementController    as V1Statement;
+use App\Http\Controllers\API\V1\StockController        as V1Stock;
+use App\Http\Controllers\API\V1\SyncController         as V1Sync;
 
-// Note on namespace: the folder is Api/ but the namespace is API\ (legacy).
 // ─────────────────────────────────────────────────────────────────────────────
 //  Auth (public — no middleware)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,36 +35,32 @@ Route::middleware('auth:api')->group(function () {
 Route::prefix('v1')->middleware('auth:api')->group(function () {
 
     // Companies
-    Route::get('companies', [V1\CompanyController::class, 'index']);
+    Route::get('companies', [V1Company::class, 'index']);
 
-    // Products (with search / filter / pagination)
-    Route::get('products', [V1\ProductController::class, 'index']);
+    // Products (search / filter / pagination)
+    Route::get('products',                      [V1Product::class, 'index']);
+    Route::get('products/{product}/stock',      [V1Stock::class,   'show']);
 
     // Pharmacies
-    Route::get('pharmacies',                        [V1\PharmacyController::class, 'index']);
-    Route::get('pharmacies/{pharmacy}/statement',   [V1\StatementController::class, 'show']);
-
-    // Stock
-    Route::get('products/{product}/stock',          [V1\StockController::class, 'show']);
+    Route::get('pharmacies',                    [V1Pharmacy::class,  'index']);
+    Route::get('pharmacies/{pharmacy}/statement',[V1Statement::class, 'pharmacy']);
 
     // Orders
-    Route::get('orders',                    [V1\OrderController::class, 'index']);
-    Route::post('orders',                   [V1\OrderController::class, 'store']);
-    Route::get('orders/{order}',            [V1\OrderController::class, 'show']);
-    Route::post('orders/{order}/confirm',   [V1\OrderController::class, 'confirm']);
-    Route::post('orders/{order}/cancel',    [V1\OrderController::class, 'cancel']);
+    Route::get('orders',                        [V1Order::class, 'index']);
+    Route::post('orders',                       [V1Order::class, 'store']);
+    Route::get('orders/{order}',                [V1Order::class, 'show']);
+    Route::post('orders/{order}/confirm',       [V1Order::class, 'confirm']);
+    Route::post('orders/{order}/cancel',        [V1Order::class, 'cancel']);
 
     // Payments
-    Route::post('payments', [V1\PaymentController::class, 'store']);
+    Route::post('payments', [V1Payment::class, 'store']);
 
     // Rep dashboard
-    Route::get('rep/dashboard', [V1\DashboardController::class, 'repDashboard']);
+    Route::get('rep/dashboard', [V1Dashboard::class, 'repDashboard']);
 
-    // ── Sync (Flutter offline-first) ──────────────────────────────────────
+    // Sync (Flutter offline-first)
     Route::prefix('sync')->group(function () {
-        Route::get('bootstrap', [V1\SyncController::class, 'bootstrap']);
-        Route::get('changes',   [V1\SyncController::class, 'changes']);
+        Route::get('bootstrap', [V1Sync::class, 'bootstrap']);
+        Route::get('changes',   [V1Sync::class, 'changes']);
     });
 });
-
-
