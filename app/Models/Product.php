@@ -11,6 +11,19 @@ class Product extends Model
 {
     use HasFactory, SoftDeletes;
 
+    /**
+     * LEGACY NOTE — products.quantity
+     * ---------------------------------
+     * The `quantity` column predates the stock-movement system and is no longer
+     * the source of truth for on-hand stock.  All stock levels must be read from
+     * the `stock_movements` table (via StockService::getCurrentStock() or the
+     * stockMovements relationship).
+     *
+     * The column is kept to avoid a destructive migration and to preserve
+     * compatibility with old Excel imports that still populate it.
+     * DO NOT read `$product->quantity` for business logic — use `currentStock()`
+     * or StockService instead.  DO NOT write to it from forms or controllers.
+     */
     protected $fillable = [
         'user_id',
         'company_id',
@@ -20,7 +33,7 @@ class Product extends Model
         'form',
         'details',
         'price',
-        'quantity',
+        // 'quantity' intentionally omitted — legacy column, read-only via import compat.
         'min_stock',
         'is_active',
     ];
@@ -29,10 +42,23 @@ class Product extends Model
     {
         return [
             'price'     => 'decimal:2',
+            // quantity is cast for legacy reads only; do not rely on it for stock logic.
             'quantity'  => 'integer',
             'min_stock' => 'integer',
             'is_active' => 'boolean',
         ];
+    }
+
+    // ─── Stock helper ─────────────────────────────────────────────────────────
+
+    /**
+     * Return live on-hand stock from stock_movements (single aggregate query).
+     * Prefer passing a pre-loaded stock map from the controller (batch query)
+     * over calling this per-instance to avoid N+1.
+     */
+    public function currentStock(): int
+    {
+        return (int) $this->stockMovements()->sum('quantity');
     }
 
     // ─── Price helpers (delegates to productPrice relationship) ───────────────

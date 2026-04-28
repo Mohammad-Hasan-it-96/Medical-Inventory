@@ -147,8 +147,9 @@
                             <td class="text-end">{{ number_format($product->productPrice?->net_price_syp ?? 0, 2) }}</td>
                             <td class="text-end">{{ number_format($product->productPrice?->public_price_syp ?? 0, 2) }}</td>
                             <td>
-                                <span class="badge bg-{{ $product->quantity > 10 ? 'success' : 'warning' }}">
-                                    {{ $product->quantity }} {{\App\Helpers\Helpers::translate('in_stock')}}
+                                @php $liveStock = (int) ($stockMap[$product->id] ?? 0); @endphp
+                                <span class="badge bg-{{ $liveStock > 10 ? 'success' : 'warning' }}">
+                                    {{ $liveStock }} {{\App\Helpers\Helpers::translate('in_stock')}}
                                 </span>
                             </td>
                             <td>

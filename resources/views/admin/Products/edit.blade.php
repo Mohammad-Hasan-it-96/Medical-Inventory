@@ -79,13 +79,8 @@
                         @error('form')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
-                    {{-- Quantity --}}
-                    <div class="col-md-6">
-                        <label for="quantity" class="form-label">{{\App\Helpers\Helpers::translate('quantity')}}</label>
-                        <input type="number" class="form-control @error('quantity') is-invalid @enderror"
-                               id="quantity" name="quantity" value="{{ old('quantity', $product->quantity) }}" required>
-                        @error('quantity')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                    {{-- Quantity field removed — stock is now tracked via Stock Movements.
+                         Use the Stock Movements page to record openings, purchases, or adjustments. --}}
 
                     {{-- Description --}}
                     <div class="col-12">

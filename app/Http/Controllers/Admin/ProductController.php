@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Product;
+use App\Models\StockMovement;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
@@ -36,7 +37,7 @@ class ProductController extends Controller
             'name'             => 'required|string|max:255',
             'price'            => 'required|numeric|min:0',
             'details'          => 'required|string',
-            'quantity'         => 'required|integer|min:0',
+            // 'quantity' removed — stock is managed via stock_movements, not this column.
             'company_id'       => 'nullable|exists:companies,id',
             'form'             => 'nullable|in:tablet,capsule,syrup,injection,cream,ointment,drops,spray,powder,gel,solution,suspension,other',
             'net_price_syp'    => 'required|numeric|min:0',
@@ -62,7 +63,13 @@ class ProductController extends Controller
         $users     = User::all();
         $companies = Company::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.products.index', compact('products', 'users', 'companies'));
+        // Batch aggregate — one query instead of one per product.
+        $stockMap = StockMovement::whereIn('product_id', $products->pluck('id'))
+            ->groupBy('product_id')
+            ->selectRaw('product_id, SUM(quantity) as total')
+            ->pluck('total', 'product_id');
+
+        return view('admin.Products.index', compact('products', 'users', 'companies', 'stockMap'));
     }
 
     // ─── Export ───────────────────────────────────────────────────────────────
@@ -81,6 +88,13 @@ class ProductController extends Controller
         }
 
         $products    = $query->get();
+
+        // Resolve live stock from stock_movements (one batch query).
+        $stockMap = StockMovement::whereIn('product_id', $products->pluck('id'))
+            ->groupBy('product_id')
+            ->selectRaw('product_id, SUM(quantity) as total')
+            ->pluck('total', 'product_id');
+
         $spreadsheet = new Spreadsheet();
         $sheet       = $spreadsheet->getActiveSheet();
 
@@ -100,7 +114,7 @@ class ProductController extends Controller
             $sheet->setCellValue('B' . $row, $product->name);
             $sheet->setCellValue('C' . $row, $product->price);
             $sheet->setCellValue('D' . $row, $product->details);
-            $sheet->setCellValue('E' . $row, $product->quantity);
+            $sheet->setCellValue('E' . $row, (int) ($stockMap[$product->id] ?? 0));
             $sheet->setCellValue('F' . $row, $product->company?->name ?? '');
             $sheet->setCellValue('G' . $row, $product->form ?? '');
             $sheet->setCellValue('H' . $row, $product->productPrice?->net_price_syp ?? 0);
@@ -309,11 +323,13 @@ class ProductController extends Controller
                     'name'       => $row[0],
                     'price'      => $row[1],
                     'details'    => $row[2],
-                    'quantity'   => (int) $row[3],
                     'company_id' => $companyId,
                     'form'       => $form,
                 ]);
-                $product->user_id = Auth::id();
+                // quantity is a legacy column (stock_movements is the source of truth).
+                // Import still populates it for backward compatibility with old Excel files.
+                $product->quantity = (int) $row[3];
+                $product->user_id  = Auth::id();
                 $product->save();
 
                 // ── Create price record ────────────────────────────────────
