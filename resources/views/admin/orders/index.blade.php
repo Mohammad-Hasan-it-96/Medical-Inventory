@@ -17,6 +17,7 @@
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('status') }}</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">{{ \App\Helpers\Helpers::translate('all') }}</option>
+                        <option value="draft"     {{ request('status')==='draft'?'selected':'' }}>{{ __('admin.order_status.draft') }}</option>
                         <option value="pending"   {{ request('status')==='pending'?'selected':'' }}>{{ __('admin.order_status.pending') }}</option>
                         <option value="confirmed" {{ request('status')==='confirmed'?'selected':'' }}>{{ __('admin.order_status.confirmed') }}</option>
                         <option value="cancelled" {{ request('status')==='cancelled'?'selected':'' }}>{{ __('admin.order_status.cancelled') }}</option>

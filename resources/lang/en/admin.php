@@ -9,6 +9,7 @@ return [
     // ── Order / payment statuses ────────────────────────────────────────────
     'order_status' => [
         'all'       => 'All',
+        'draft'     => 'Draft',
         'pending'   => 'Pending',
         'confirmed' => 'Confirmed',
         'cancelled' => 'Cancelled',
@@ -26,10 +27,17 @@ return [
     ],
 
     // ── Orders / show page ──────────────────────────────────────────────────
-    'order_title'  => 'Order #:number',
-    'confirmed_at' => 'Confirmed At',
-    'cancelled_at' => 'Cancelled At',
-    'no_items'     => 'No items found.',
+    'order_title'             => 'Order #:number',
+    'order_details'           => 'Order Details',
+    'order_items'             => 'Order Items',
+    'confirmed_at'            => 'Confirmed At',
+    'cancelled_at'            => 'Cancelled At',
+    'no_items'                => 'No items found.',
+    'confirm_order'           => 'Confirm Order',
+    'cancel_order'            => 'Cancel Order',
+    'confirm_order_confirm'   => 'Are you sure you want to confirm this order?',
+    'cancel_order_confirm'    => 'Are you sure you want to cancel this order?',
+    'order_draft'             => 'Draft',
 
     // ── Confirm-delete dialogs (used in JS confirm()) ───────────────────────
     'delete_confirm'          => 'Are you sure you want to delete this record?',

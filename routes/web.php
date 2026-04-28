@@ -121,10 +121,12 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
         Route::delete('{pharmacy}',   [PharmacyController::class, 'destroy'])->name('destroy');
     });
 
-    // ── Orders (read-only) ────────────────────────────────────────────────────
+    // ── Orders ────────────────────────────────────────────────────────────────
     Route::prefix('orders')->name('orders.')->group(function () {
-        Route::get('',          [OrderController::class, 'index'])->name('index');
-        Route::get('{order}',   [OrderController::class, 'show'])->name('show');
+        Route::get('',                       [OrderController::class, 'index'])->name('index');
+        Route::get('{order}',                [OrderController::class, 'show'])->name('show');
+        Route::post('{order}/confirm',       [OrderController::class, 'confirm'])->name('confirm');
+        Route::post('{order}/cancel',        [OrderController::class, 'cancel'])->name('cancel');
     });
 
     // ── Stock Movements ───────────────────────────────────────────────────────

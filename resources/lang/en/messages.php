@@ -35,6 +35,12 @@ return [
     'user_updated' => 'User updated successfully.',
     'user_deleted' => 'User deleted successfully.',
 
+    // ── Orders ───────────────────────────────────────────────────────────────
+    'order_confirmed' => 'Order confirmed successfully.',
+    'order_cancelled' => 'Order cancelled successfully.',
+    'order_confirm_failed' => 'Could not confirm order: :error',
+    'order_cancel_failed'  => 'Could not cancel order: :error',
+
     // ── System configs ───────────────────────────────────────────────────────
     'configs_updated' => 'Configurations updated successfully.',
     'config_created'  => 'Configuration created successfully.',
