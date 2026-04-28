@@ -43,10 +43,20 @@ class Helpers
         // First try to get from app.php translations
         $translation = __("app.$key", $replace, $locale);
 
+        // If the result is an array, it means the key resolved to a group — treat as not found
+        if (is_array($translation)) {
+            $translation = "app.$key";
+        }
+
         // If the translation is the same as the key with 'app.' prefix, it means it wasn't found
         if ($translation === "app.$key") {
             // Try to get from other translation files without prefix
             $translation = __($key, $replace, $locale);
+
+            // If result is an array, fall back to the key
+            if (is_array($translation)) {
+                $translation = $key;
+            }
 
             // If still not found, return the key itself
             if ($translation === $key) {
@@ -56,6 +66,6 @@ class Helpers
             }
         }
 
-        return $translation;
+        return (string) $translation;
     }
 }
