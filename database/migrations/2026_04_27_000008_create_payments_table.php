@@ -38,7 +38,7 @@ return new class extends Migration
 
             $table->index('pharmacy_id');
             $table->index('order_id');
-            $table->index('created_at');
+            $table->index('created_by');
         });
     }
 

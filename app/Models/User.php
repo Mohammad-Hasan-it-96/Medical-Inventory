@@ -113,4 +113,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class, 'rep_id');
     }
+
+    /**
+     * Payments recorded by this user.
+     */
+    public function createdPayments()
+    {
+        return $this->hasMany(Payment::class, 'created_by');
+    }
 }
