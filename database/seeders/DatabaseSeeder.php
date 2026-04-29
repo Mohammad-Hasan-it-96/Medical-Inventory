@@ -15,6 +15,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // OAuth — must run before anything that issues tokens
+            PassportSeeder::class,
+
             // Infrastructure / config
             SystemConfigSeeder::class,
             LanguageSeeder::class,

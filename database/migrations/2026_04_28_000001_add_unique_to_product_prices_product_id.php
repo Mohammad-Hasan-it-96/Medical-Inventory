@@ -45,18 +45,27 @@ return new class extends Migration
         }
 
         Schema::table('product_prices', function (Blueprint $table) {
-            // Drop the plain index added in the create migration, then add
-            // a unique index (which implicitly replaces it).
+            // MySQL will not allow dropping the plain index while a FK constraint
+            // references it.  Drop the FK first, swap plain index → unique index,
+            // then restore the FK (unique index satisfies the FK requirement too).
+            $table->dropForeign(['product_id']);
             $table->dropIndex(['product_id']);
             $table->unique('product_id');
+            $table->foreign('product_id')
+                  ->references('id')->on('products')
+                  ->cascadeOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::table('product_prices', function (Blueprint $table) {
+            $table->dropForeign(['product_id']);
             $table->dropUnique(['product_id']);
             $table->index('product_id');
+            $table->foreign('product_id')
+                  ->references('id')->on('products')
+                  ->cascadeOnDelete();
         });
     }
 };

@@ -20,14 +20,14 @@ class LanguageSeeder extends Seeder
                 'direction' => 'ltr' ,
                 'status' => 1 ,
                 'is_default' => 0 ,
-                'flag_path' =>'en.png'
+                'flag_path' =>'flags/en.png'
             ],
             ['name' => 'Arabic',
                 'code' => 'AR',
                 'direction' => 'rtl' ,
                 'status' => 1 ,
                 'is_default' => 1 ,
-                'flag_path' =>'ar.png'
+                'flag_path' =>'flags/ar.png'
             ],
         ];
         foreach ($languages as $language) {
