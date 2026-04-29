@@ -85,8 +85,28 @@ return [
     'select_order'       => 'بدون طلب مرتبط',
     'select_pharmacy_first' => 'اختر صيدلية أولاً لتصفية الطلبات',
 
+    // ── صفحة كشف الحساب ────────────────────────────────────────────────────
+    'statement_title'         => 'كشف حساب',
+    'statement_for'           => 'كشف حساب: :name',
+    'statement_opening'       => 'الرصيد الافتتاحي',
+    'statement_debit'         => 'إجمالي المديونية',
+    'statement_credit'        => 'إجمالي المدفوعات',
+    'statement_balance'       => 'الرصيد الحالي',
+    'statement_entry_date'    => 'التاريخ',
+    'statement_entry_type'    => 'النوع',
+    'statement_entry_desc'    => 'الوصف',
+    'statement_entry_amount'  => 'المبلغ',
+    'statement_entry_order'   => 'الطلب',
+    'statement_no_entries'    => 'لا توجد قيود محاسبية للفترة المحددة.',
+    'entry_type_debit'        => 'مدين',
+    'entry_type_credit'       => 'دائن',
+
+    // ── أعلى الصيدليات في لوحة التحكم ──────────────────────────────────────
+    'dash_top_pharmacies'     => 'أعلى الصيدليات بالمدفوعات',
+
     // ── عناصر نائبة للبحث / الفلاتر ─────────────────────────────────────
     'placeholder_name_phone'      => 'الاسم أو الهاتف…',
     'placeholder_name_phone_area' => 'الاسم / الهاتف / المنطقة…',
+    'order_number_search'         => 'رقم الطلب…',
 ];
 

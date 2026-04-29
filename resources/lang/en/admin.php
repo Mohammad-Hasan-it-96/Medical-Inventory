@@ -85,8 +85,28 @@ return [
     'select_order'       => 'No related order',
     'select_pharmacy_first' => 'Select a pharmacy first to filter orders',
 
+    // ── Statement page ──────────────────────────────────────────────────────
+    'statement_title'         => 'Account Statement',
+    'statement_for'           => 'Statement: :name',
+    'statement_opening'       => 'Opening Balance',
+    'statement_debit'         => 'Total Debits',
+    'statement_credit'        => 'Total Credits',
+    'statement_balance'       => 'Current Balance',
+    'statement_entry_date'    => 'Date',
+    'statement_entry_type'    => 'Type',
+    'statement_entry_desc'    => 'Description',
+    'statement_entry_amount'  => 'Amount',
+    'statement_entry_order'   => 'Order',
+    'statement_no_entries'    => 'No ledger entries found for the selected period.',
+    'entry_type_debit'        => 'Debit',
+    'entry_type_credit'       => 'Credit',
+
+    // ── Dashboard top pharmacies ─────────────────────────────────────────────
+    'dash_top_pharmacies'     => 'Top Pharmacies by Payments',
+
     // ── Search / filter placeholders ────────────────────────────────────────
     'placeholder_name_phone'      => 'Name or phone…',
     'placeholder_name_phone_area' => 'Name / phone / area…',
+    'order_number_search'         => 'Order number…',
 ];
 

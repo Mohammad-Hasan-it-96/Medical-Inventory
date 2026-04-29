@@ -14,6 +14,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $query = Order::with(['pharmacy', 'rep'])->latest();
+        if ($request->filled('search'))      $query->where('order_number', 'like', '%'.$request->input('search').'%');
         if ($request->filled('status'))      $query->where('status', $request->input('status'));
         if ($request->filled('rep_id'))      $query->where('rep_id', $request->input('rep_id'));
         if ($request->filled('pharmacy_id')) $query->where('pharmacy_id', $request->input('pharmacy_id'));

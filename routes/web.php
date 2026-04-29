@@ -112,13 +112,14 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
 
     // ── Pharmacies ────────────────────────────────────────────────────────────
     Route::prefix('pharmacies')->name('pharmacies.')->middleware('moderator')->group(function () {
-        Route::get('',                [PharmacyController::class, 'index'])->name('index');
-        Route::get('create',          [PharmacyController::class, 'create'])->name('create');
-        Route::post('store',          [PharmacyController::class, 'store'])->name('store');
-        Route::get('{pharmacy}',      [PharmacyController::class, 'show'])->name('show');
-        Route::get('{pharmacy}/edit', [PharmacyController::class, 'edit'])->name('edit');
-        Route::put('{pharmacy}',      [PharmacyController::class, 'update'])->name('update');
-        Route::delete('{pharmacy}',   [PharmacyController::class, 'destroy'])->name('destroy');
+        Route::get('',                          [PharmacyController::class, 'index'])->name('index');
+        Route::get('create',                    [PharmacyController::class, 'create'])->name('create');
+        Route::post('store',                    [PharmacyController::class, 'store'])->name('store');
+        Route::get('{pharmacy}/statement',      [PharmacyController::class, 'statement'])->name('statement');
+        Route::get('{pharmacy}',                [PharmacyController::class, 'show'])->name('show');
+        Route::get('{pharmacy}/edit',           [PharmacyController::class, 'edit'])->name('edit');
+        Route::put('{pharmacy}',                [PharmacyController::class, 'update'])->name('update');
+        Route::delete('{pharmacy}',             [PharmacyController::class, 'destroy'])->name('destroy');
     });
 
     // ── Orders ────────────────────────────────────────────────────────────────

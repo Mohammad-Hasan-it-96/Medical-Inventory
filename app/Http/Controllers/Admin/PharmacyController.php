@@ -3,9 +3,13 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Pharmacy;
 use App\Models\User;
+use App\Services\StatementService;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+
 class PharmacyController extends Controller
 {
+    public function __construct(protected StatementService $statementService) {}
     public function index(Request $request)
     {
         $query = Pharmacy::with('rep');
@@ -48,6 +52,36 @@ class PharmacyController extends Controller
         $recentPayments = $pharmacy->payments()->latest()->take(10)->get();
 
         return view('admin.pharmacies.show', compact('pharmacy', 'recentOrders', 'recentPayments'));
+    }
+
+    public function statement(Request $request, Pharmacy $pharmacy)
+    {
+        $from = $request->input('date_from');
+        $to   = $request->input('date_to');
+
+        $data    = $this->statementService->getPharmacyStatement($pharmacy->id, $from, $to);
+        $entries = $data['entries'];
+
+        // Manually paginate the collection (15 per page)
+        $page        = $request->input('page', 1);
+        $perPage     = 15;
+        $offset      = ($page - 1) * $perPage;
+        $paginated   = new LengthAwarePaginator(
+            $entries->slice($offset, $perPage)->values(),
+            $entries->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('admin.pharmacies.statement', [
+            'pharmacy'        => $pharmacy,
+            'opening_balance' => $data['opening_balance'],
+            'total_debit'     => $data['total_debit'],
+            'total_credit'    => $data['total_credit'],
+            'balance'         => $data['balance'],
+            'entries'         => $paginated,
+        ]);
     }
 
     public function edit(Pharmacy $pharmacy)

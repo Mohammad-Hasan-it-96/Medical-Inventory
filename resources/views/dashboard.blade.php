@@ -178,7 +178,7 @@
     <div class="row g-4">
 
         {{-- Latest Orders --}}
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             <div class="card border-0 h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="bi bi-receipt me-2"></i>{{ __('admin.dash_recent_orders') }}</h6>
@@ -229,7 +229,7 @@
         </div>
 
         {{-- Latest Payments --}}
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <div class="card border-0 h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0"><i class="bi bi-cash-coin me-2"></i>{{ __('admin.dash_recent_payments') }}</h6>
@@ -271,7 +271,7 @@
         </div>
 
         {{-- Low Stock Alert --}}
-        <div class="col-lg-3">
+        <div class="col-lg-2">
             <div class="card border-0 h-100">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 text-warning">
@@ -292,7 +292,7 @@
                             <tbody>
                                 @forelse($lowStockProducts as $prod)
                                 <tr>
-                                    <td class="ps-3 text-truncate" style="max-width:120px;">
+                                    <td class="ps-3 text-truncate" style="max-width:100px;">
                                         {{ $prod->name }}
                                     </td>
                                     <td class="text-center fw-bold {{ $prod->current_stock <= 0 ? 'text-danger' : 'text-warning' }}">
@@ -304,6 +304,53 @@
                                 <tr>
                                     <td colspan="3" class="text-center py-4 text-success">
                                         <i class="bi bi-check-circle me-1"></i>
+                                        {{ \App\Helpers\Helpers::translate('no_records_found') }}
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Top Pharmacies --}}
+        <div class="col-lg-3">
+            <div class="card border-0 h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-trophy me-2 text-warning"></i>{{ __('admin.dash_top_pharmacies') }}</h6>
+                    <a href="{{ route('admin.pharmacies.index') }}" class="btn btn-sm btn-link text-decoration-none p-0">
+                        {{ \App\Helpers\Helpers::translate('view_all') }}
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0 small">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">{{ \App\Helpers\Helpers::translate('pharmacy') }}</th>
+                                    <th class="text-end">{{ \App\Helpers\Helpers::translate('amount') }}</th>
+                                    <th class="text-center">{{ \App\Helpers\Helpers::translate('orders') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($topPharmacies as $ph)
+                                <tr>
+                                    <td class="ps-3">
+                                        <a href="{{ route('admin.pharmacies.statement', $ph) }}"
+                                           class="text-decoration-none text-truncate d-inline-block" style="max-width:100px;">
+                                            {{ $ph->name }}
+                                        </a>
+                                    </td>
+                                    <td class="text-end fw-medium text-success">
+                                        {{ number_format($ph->payments_sum_amount ?? 0, 0) }}
+                                    </td>
+                                    <td class="text-center text-muted">{{ $ph->orders_count }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="text-center py-4 text-muted">
                                         {{ \App\Helpers\Helpers::translate('no_records_found') }}
                                     </td>
                                 </tr>

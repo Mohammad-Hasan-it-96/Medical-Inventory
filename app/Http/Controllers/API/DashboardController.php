@@ -70,7 +70,13 @@ class DashboardController extends BaseController
             ->limit(10)
             ->get();
 
-        return view('dashboard', compact('stats', 'recentOrders', 'recentPayments', 'lowStockProducts'));
+        $topPharmacies = Pharmacy::withSum('payments', 'amount')
+            ->withCount('orders')
+            ->orderByDesc('payments_sum_amount')
+            ->limit(8)
+            ->get(['id', 'name']);
+
+        return view('dashboard', compact('stats', 'recentOrders', 'recentPayments', 'lowStockProducts', 'topPharmacies'));
     }
 
     public function welcome(Request $request)

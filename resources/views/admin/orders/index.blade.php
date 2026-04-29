@@ -14,6 +14,12 @@
         <div class="card-body py-3">
             <form action="{{ route('admin.orders.index') }}" method="GET" class="row g-2 align-items-end">
                 <div class="col-md-2">
+                    <label class="form-label small">{{ \App\Helpers\Helpers::translate('search') }}</label>
+                    <input type="text" name="search" class="form-control form-control-sm"
+                           placeholder="{{ __('admin.order_number_search') }}"
+                           value="{{ request('search') }}">
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('status') }}</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">{{ \App\Helpers\Helpers::translate('all') }}</option>
@@ -41,11 +47,11 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('date_from') }}</label>
                     <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('date_to') }}</label>
                     <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
                 </div>

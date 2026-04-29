@@ -19,6 +19,9 @@
             </h3>
         </div>
         <div class="d-flex gap-2">
+            <a href="{{ route('admin.pharmacies.statement', $pharmacy) }}" class="btn btn-outline-info btn-sm">
+                <i class="bi bi-journal-text me-1"></i>{{ __('admin.statement_title') }}
+            </a>
             <a href="{{ route('admin.pharmacies.edit', $pharmacy) }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-pencil-square me-1"></i>{{ __('pharmacies.buttons.edit') }}
             </a>

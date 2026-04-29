@@ -39,6 +39,15 @@
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label small">{{ __('admin.payment_method_lbl') }}</label>
+                    <select name="method" class="form-select form-select-sm">
+                        <option value="">{{ __('admin.payment_method.all') }}</option>
+                        <option value="cash"  {{ request('method') === 'cash'  ? 'selected' : '' }}>{{ __('admin.payment_method.cash') }}</option>
+                        <option value="bank"  {{ request('method') === 'bank'  ? 'selected' : '' }}>{{ __('admin.payment_method.bank') }}</option>
+                        <option value="other" {{ request('method') === 'other' ? 'selected' : '' }}>{{ __('admin.payment_method.other') }}</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('date_from') }}</label>
                     <input type="date" name="date_from" class="form-control form-control-sm"
                            value="{{ request('date_from') }}">

@@ -16,6 +16,7 @@ class PaymentController extends Controller
     {
         $query = Payment::with(['pharmacy','order','creator'])->latest('paid_at');
         if ($request->filled('pharmacy_id')) $query->where('pharmacy_id', $request->input('pharmacy_id'));
+        if ($request->filled('method'))      $query->where('method', $request->input('method'));
         if ($request->filled('date_from'))   $query->whereDate('paid_at', '>=', $request->input('date_from'));
         if ($request->filled('date_to'))     $query->whereDate('paid_at', '<=', $request->input('date_to'));
         $payments   = $query->paginate(25)->withQueryString();

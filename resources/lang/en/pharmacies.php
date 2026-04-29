@@ -35,6 +35,7 @@ return [
         'financial' => 'Financial Information',
         'orders'    => 'Recent Orders',
         'payments'  => 'Recent Payments',
+        'statement' => 'Account Ledger',
     ],
 
     // ── Filter labels & placeholders ─────────────────────────────────────────
