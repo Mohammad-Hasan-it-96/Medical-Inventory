@@ -12,15 +12,22 @@ class PharmacyController extends Controller
     public function __construct(protected StatementService $statementService) {}
     public function index(Request $request)
     {
+        $sortable  = ['name', 'area', 'credit_limit', 'opening_balance', 'updated_at'];
+        $orderBy   = in_array($request->input('order_by'), $sortable) ? $request->input('order_by') : 'name';
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $perPage   = in_array((int) $request->input('per_page', 20), [10, 20, 50, 100])
+            ? (int) $request->input('per_page', 20) : 20;
+
         $query = Pharmacy::with('rep');
         if ($s = $request->input('search')) {
             $query->where(fn($q) => $q->where('name','like',"%$s%")->orWhere('phone','like',"%$s%")->orWhere('area','like',"%$s%"));
         }
         if ($request->filled('rep_id'))  $query->where('rep_id', $request->input('rep_id'));
         if ($request->filled('status'))  $query->where('is_active', $request->input('status'));
-        $pharmacies = $query->orderBy('name')->paginate(20)->withQueryString();
-        $reps = User::where('role','rep')->orderBy('name')->get();
-        return view('admin.pharmacies.index', compact('pharmacies','reps'));
+
+        $pharmacies = $query->orderBy($orderBy, $direction)->paginate($perPage)->withQueryString();
+        $reps = User::where('role','rep')->orderBy('name')->get(['id','name']);
+        return view('admin.pharmacies.index', compact('pharmacies','reps','orderBy','direction','perPage'));
     }
     public function create()
     {
@@ -56,17 +63,17 @@ class PharmacyController extends Controller
 
     public function statement(Request $request, Pharmacy $pharmacy)
     {
-        $from = $request->input('date_from');
-        $to   = $request->input('date_to');
+        $from    = $request->input('date_from');
+        $to      = $request->input('date_to');
+        $perPage = in_array((int) $request->input('per_page', 20), [10, 20, 50, 100])
+            ? (int) $request->input('per_page', 20) : 20;
 
         $data    = $this->statementService->getPharmacyStatement($pharmacy->id, $from, $to);
         $entries = $data['entries'];
 
-        // Manually paginate the collection (15 per page)
-        $page        = $request->input('page', 1);
-        $perPage     = 15;
-        $offset      = ($page - 1) * $perPage;
-        $paginated   = new LengthAwarePaginator(
+        $page      = $request->input('page', 1);
+        $offset    = ($page - 1) * $perPage;
+        $paginated = new LengthAwarePaginator(
             $entries->slice($offset, $perPage)->values(),
             $entries->count(),
             $perPage,
@@ -81,6 +88,7 @@ class PharmacyController extends Controller
             'total_credit'    => $data['total_credit'],
             'balance'         => $data['balance'],
             'entries'         => $paginated,
+            'perPage'         => $perPage,
         ]);
     }
 

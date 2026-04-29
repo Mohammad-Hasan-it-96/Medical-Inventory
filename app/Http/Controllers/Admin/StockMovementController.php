@@ -11,12 +11,18 @@ class StockMovementController extends Controller
     public function __construct(protected StockService $stockService) {}
     public function index(Request $request)
     {
-        $query = StockMovement::with(['product', 'creator'])->latest();
+        $sortable  = ['created_at', 'quantity', 'type'];
+        $orderBy   = in_array($request->input('order_by'), $sortable) ? $request->input('order_by') : 'created_at';
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $perPage   = in_array((int) $request->input('per_page', 20), [10, 20, 50, 100])
+            ? (int) $request->input('per_page', 20) : 20;
+
+        $query = StockMovement::with(['product', 'creator'])->orderBy($orderBy, $direction);
         if ($request->filled('product_id')) $query->where('product_id', $request->input('product_id'));
         if ($request->filled('type'))       $query->where('type', $request->input('type'));
         if ($request->filled('date_from'))  $query->whereDate('created_at', '>=', $request->input('date_from'));
         if ($request->filled('date_to'))    $query->whereDate('created_at', '<=', $request->input('date_to'));
-        $movements = $query->paginate(25)->withQueryString();
+        $movements = $query->paginate($perPage)->withQueryString();
         $products  = Product::orderBy('name')->get(['id', 'name']);
         $types     = [
             StockMovement::TYPE_OPENING,
@@ -27,7 +33,7 @@ class StockMovementController extends Controller
             StockMovement::TYPE_RETURN_IN,
             StockMovement::TYPE_RETURN_OUT,
         ];
-        return view('admin.stock-movements.index', compact('movements', 'products', 'types'));
+        return view('admin.stock-movements.index', compact('movements', 'products', 'types', 'orderBy', 'direction', 'perPage'));
     }
     public function adjust(Request $request)
     {

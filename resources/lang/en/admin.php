@@ -85,6 +85,13 @@ return [
     'select_order'       => 'No related order',
     'select_pharmacy_first' => 'Select a pharmacy first to filter orders',
 
+    // ── Table / pagination UX ───────────────────────────────────────────────
+    'per_page'           => 'Per page',
+    'low_stock_filter'   => 'Low stock only',
+    'any_form'           => 'Any form',
+    'any_status'         => 'Any status',
+    'filter_is_active'   => 'Status',
+
     // ── Statement page ──────────────────────────────────────────────────────
     'statement_title'         => 'Account Statement',
     'statement_for'           => 'Statement: :name',

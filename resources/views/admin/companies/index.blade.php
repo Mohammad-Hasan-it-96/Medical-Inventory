@@ -1,11 +1,20 @@
 @extends('layouts.app')
 @section('title', \App\Helpers\Helpers::translate('companies'))
-
 @section('content')
+@php
+$sortIcon = fn($col) => $orderBy === $col
+    ? ($direction === 'asc' ? 'bi-sort-up-alt' : 'bi-sort-down-alt')
+    : 'bi-arrow-down-up opacity-25';
+$sortUrl = fn($col) => request()->fullUrlWithQuery([
+    'order_by'  => $col,
+    'direction' => ($orderBy === $col && $direction === 'asc') ? 'desc' : 'asc',
+    'page'      => 1,
+]);
+@endphp
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="bi bi-buildings me-2"></i>{{ \App\Helpers\Helpers::translate('companies') }}</h3>
-        <a href="{{ route('admin.companies.create') }}" class="btn btn-primary">
+        <a href="{{ route('admin.companies.create') }}" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-lg me-1"></i>{{ \App\Helpers\Helpers::translate('add_new') }}
         </a>
     </div>
@@ -16,10 +25,10 @@
         </div>
     @endif
 
-    {{-- Filters --}}
     <div class="card shadow mb-4">
         <div class="card-body py-3">
             <form action="{{ route('admin.companies.index') }}" method="GET" class="row g-2 align-items-end">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
                 <div class="col-md-5">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('search') }}</label>
                     <input type="text" name="search" class="form-control form-control-sm" value="{{ request('search') }}" placeholder="{{ __('admin.placeholder_name_phone') }}">
@@ -47,8 +56,16 @@
                     <thead class="table-primary">
                         <tr>
                             <th class="ps-4">#</th>
-                            <th>{{ \App\Helpers\Helpers::translate('name') }}</th>
-                            <th>{{ \App\Helpers\Helpers::translate('phone') }}</th>
+                            <th>
+                                <a href="{{ $sortUrl('name') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('name') }} <i class="bi {{ $sortIcon('name') }} small"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortUrl('phone') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('phone') }} <i class="bi {{ $sortIcon('phone') }} small"></i>
+                                </a>
+                            </th>
                             <th>{{ \App\Helpers\Helpers::translate('address') }}</th>
                             <th>{{ \App\Helpers\Helpers::translate('status') }}</th>
                             <th class="text-end pe-4">{{ \App\Helpers\Helpers::translate('actions') }}</th>
@@ -95,11 +112,24 @@
                 </table>
             </div>
         </div>
-        @if($companies->hasPages())
-        <div class="card-footer d-flex justify-content-end">
-            {{ $companies->links() }}
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <form method="GET" action="{{ route('admin.companies.index') }}" class="d-flex align-items-center gap-2">
+                @foreach(request()->except(['page','per_page','order_by','direction']) as $k => $v)
+                    @if($v !== '' && $v !== null)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endif
+                @endforeach
+                <input type="hidden" name="order_by" value="{{ $orderBy }}">
+                <input type="hidden" name="direction" value="{{ $direction }}">
+                <label class="text-muted small mb-0">{{ __('admin.per_page') }}</label>
+                <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    @foreach([10,20,50,100] as $n)
+                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </select>
+            </form>
+            @if($companies->hasPages())
+                <div>{{ $companies->links() }}</div>
+            @endif
         </div>
-        @endif
     </div>
 </div>
 @endsection

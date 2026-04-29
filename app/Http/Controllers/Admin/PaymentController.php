@@ -14,14 +14,20 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        $query = Payment::with(['pharmacy','order','creator'])->latest('paid_at');
+        $sortable  = ['paid_at', 'amount', 'method'];
+        $orderBy   = in_array($request->input('order_by'), $sortable) ? $request->input('order_by') : 'paid_at';
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $perPage   = in_array((int) $request->input('per_page', 20), [10, 20, 50, 100])
+            ? (int) $request->input('per_page', 20) : 20;
+
+        $query = Payment::with(['pharmacy','order','creator'])->orderBy($orderBy, $direction);
         if ($request->filled('pharmacy_id')) $query->where('pharmacy_id', $request->input('pharmacy_id'));
         if ($request->filled('method'))      $query->where('method', $request->input('method'));
         if ($request->filled('date_from'))   $query->whereDate('paid_at', '>=', $request->input('date_from'));
         if ($request->filled('date_to'))     $query->whereDate('paid_at', '<=', $request->input('date_to'));
-        $payments   = $query->paginate(25)->withQueryString();
+        $payments   = $query->paginate($perPage)->withQueryString();
         $pharmacies = Pharmacy::orderBy('name')->get(['id','name']);
-        return view('admin.payments.index', compact('payments','pharmacies'));
+        return view('admin.payments.index', compact('payments','pharmacies','orderBy','direction','perPage'));
     }
 
     public function create()

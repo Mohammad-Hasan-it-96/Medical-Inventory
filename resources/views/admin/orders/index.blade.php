@@ -1,6 +1,16 @@
 ﻿@extends('layouts.app')
 @section('title', \App\Helpers\Helpers::translate('orders'))
 @section('content')
+@php
+$sortIcon = fn($col) => $orderBy === $col
+    ? ($direction === 'asc' ? 'bi-sort-up-alt' : 'bi-sort-down-alt')
+    : 'bi-arrow-down-up opacity-25';
+$sortUrl = fn($col) => request()->fullUrlWithQuery([
+    'order_by'  => $col,
+    'direction' => ($orderBy === $col && $direction === 'asc') ? 'desc' : 'asc',
+    'page'      => 1,
+]);
+@endphp
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h3><i class="bi bi-receipt me-2"></i>{{ \App\Helpers\Helpers::translate('orders') }}</h3>
@@ -13,6 +23,7 @@
     <div class="card shadow mb-4">
         <div class="card-body py-3">
             <form action="{{ route('admin.orders.index') }}" method="GET" class="row g-2 align-items-end">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
                 <div class="col-md-2">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('search') }}</label>
                     <input type="text" name="search" class="form-control form-control-sm"
@@ -69,12 +80,28 @@
                     <thead class="table-primary">
                         <tr>
                             <th class="ps-4">#</th>
-                            <th>{{ \App\Helpers\Helpers::translate('order_number') }}</th>
+                            <th>
+                                <a href="{{ $sortUrl('order_number') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('order_number') }} <i class="bi {{ $sortIcon('order_number') }} small"></i>
+                                </a>
+                            </th>
                             <th>{{ \App\Helpers\Helpers::translate('pharmacy') }}</th>
                             <th>{{ \App\Helpers\Helpers::translate('rep') }}</th>
-                            <th>{{ \App\Helpers\Helpers::translate('total') }}</th>
-                            <th>{{ \App\Helpers\Helpers::translate('status') }}</th>
-                            <th>{{ \App\Helpers\Helpers::translate('date') }}</th>
+                            <th>
+                                <a href="{{ $sortUrl('total') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('total') }} <i class="bi {{ $sortIcon('total') }} small"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortUrl('status') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('status') }} <i class="bi {{ $sortIcon('status') }} small"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortUrl('created_at') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('date') }} <i class="bi {{ $sortIcon('created_at') }} small"></i>
+                                </a>
+                            </th>
                             <th class="text-end pe-4">{{ \App\Helpers\Helpers::translate('actions') }}</th>
                         </tr>
                     </thead>
@@ -112,7 +139,22 @@
             </div>
         </div>
         @if($orders->hasPages())
-        <div class="card-footer d-flex justify-content-end">{{ $orders->links() }}</div>
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <form method="GET" action="{{ route('admin.orders.index') }}" class="d-flex align-items-center gap-2">
+                @foreach(request()->except(['page','per_page','order_by','direction']) as $k => $v)
+                    @if($v !== '' && $v !== null)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endif
+                @endforeach
+                <input type="hidden" name="order_by" value="{{ $orderBy }}">
+                <input type="hidden" name="direction" value="{{ $direction }}">
+                <label class="text-muted small mb-0">{{ __('admin.per_page') }}</label>
+                <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    @foreach([10,20,50,100] as $n)
+                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </select>
+            </form>
+            <div>{{ $orders->links() }}</div>
+        </div>
         @endif
     </div>
 </div>

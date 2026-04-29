@@ -1,6 +1,16 @@
 ﻿@extends('layouts.app')
 @section('title', \App\Helpers\Helpers::translate('stock_movements'))
 @section('content')
+@php
+$sortIcon = fn($col) => $orderBy === $col
+    ? ($direction === 'asc' ? 'bi-sort-up-alt' : 'bi-sort-down-alt')
+    : 'bi-arrow-down-up opacity-25';
+$sortUrl = fn($col) => request()->fullUrlWithQuery([
+    'order_by'  => $col,
+    'direction' => ($orderBy === $col && $direction === 'asc') ? 'desc' : 'asc',
+    'page'      => 1,
+]);
+@endphp
 <div class="container-fluid">
 
     {{-- ── Page header ──────────────────────────────────────────────────────── --}}
@@ -75,6 +85,7 @@
     <div class="card shadow mb-4">
         <div class="card-body py-3">
             <form action="{{ route('admin.stock-movements.index') }}" method="GET" class="row g-2 align-items-end">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
                 <div class="col-md-3">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('product') }}</label>
                     <select name="product_id" class="form-select form-select-sm">
@@ -124,12 +135,24 @@
                         <tr>
                             <th class="ps-4">#</th>
                             <th>{{ \App\Helpers\Helpers::translate('product') }}</th>
-                            <th>{{ \App\Helpers\Helpers::translate('type') }}</th>
-                            <th>{{ \App\Helpers\Helpers::translate('quantity') }}</th>
+                            <th>
+                                <a href="{{ $sortUrl('type') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('type') }} <i class="bi {{ $sortIcon('type') }} small"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortUrl('quantity') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('quantity') }} <i class="bi {{ $sortIcon('quantity') }} small"></i>
+                                </a>
+                            </th>
                             <th>{{ \App\Helpers\Helpers::translate('reference') }}</th>
                             <th>{{ \App\Helpers\Helpers::translate('notes') }}</th>
                             <th>{{ \App\Helpers\Helpers::translate('created_by') }}</th>
-                            <th>{{ \App\Helpers\Helpers::translate('date') }}</th>
+                            <th>
+                                <a href="{{ $sortUrl('created_at') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ \App\Helpers\Helpers::translate('date') }} <i class="bi {{ $sortIcon('created_at') }} small"></i>
+                                </a>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -181,7 +204,22 @@
             </div>
         </div>
         @if($movements->hasPages())
-        <div class="card-footer d-flex justify-content-end">{{ $movements->links() }}</div>
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <form method="GET" action="{{ route('admin.stock-movements.index') }}" class="d-flex align-items-center gap-2">
+                @foreach(request()->except(['page','per_page','order_by','direction']) as $k => $v)
+                    @if($v !== '' && $v !== null)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endif
+                @endforeach
+                <input type="hidden" name="order_by" value="{{ $orderBy }}">
+                <input type="hidden" name="direction" value="{{ $direction }}">
+                <label class="text-muted small mb-0">{{ __('admin.per_page') }}</label>
+                <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    @foreach([10,20,50,100] as $n)
+                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </select>
+            </form>
+            <div>{{ $movements->links() }}</div>
+        </div>
         @endif
     </div>
 </div>

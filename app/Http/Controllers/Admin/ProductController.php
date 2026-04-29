@@ -49,27 +49,53 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
+        // ── Sorting ───────────────────────────────────────────────────────
+        $sortable  = ['name', 'updated_at', 'form', 'price'];
+        $orderBy   = in_array($request->input('order_by'), $sortable) ? $request->input('order_by') : 'updated_at';
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+
+        // ── Per-page ──────────────────────────────────────────────────────
+        $perPage = in_array((int) $request->input('per_page', 20), [10, 20, 50, 100])
+            ? (int) $request->input('per_page', 20) : 20;
+
+        // ── Base query ────────────────────────────────────────────────────
         $query = Product::with(['user', 'company', 'productPrice']);
 
-        if ($userId = $request->input('user_id')) {
-            $query->where('user_id', $userId);
+        if ($s = $request->input('search')) {
+            $query->where(fn($q) =>
+                $q->where('name', 'like', "%$s%")
+                  ->orWhere('barcode', 'like', "%$s%")
+            );
+        }
+        if ($request->filled('user_id'))    $query->where('user_id',    $request->input('user_id'));
+        if ($request->filled('company_id')) $query->where('company_id', $request->input('company_id'));
+        if ($request->filled('form'))       $query->where('form',       $request->input('form'));
+        if ($request->filled('is_active'))  $query->where('is_active',  $request->input('is_active'));
+
+        // Low-stock filter — subquery keeps it one extra query only when used
+        if ($request->boolean('low_stock')) {
+            $query->where('min_stock', '>', 0)
+                  ->whereRaw(
+                      'COALESCE((SELECT SUM(quantity) FROM stock_movements WHERE product_id = products.id), 0) <= products.min_stock'
+                  );
         }
 
-        if ($companyId = $request->input('company_id')) {
-            $query->where('company_id', $companyId);
-        }
+        $query->orderBy("products.{$orderBy}", $direction);
 
-        $products  = $query->get();
-        $users     = User::all();
-        $companies = Company::where('is_active', true)->orderBy('name')->get();
+        $products  = $query->paginate($perPage)->withQueryString();
+        $users     = User::orderBy('name')->get(['id', 'name', 'role']);
+        $companies = Company::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $forms     = ['tablet','capsule','syrup','injection','cream','ointment',
+                      'drops','spray','powder','gel','solution','suspension','other'];
 
-        // Batch aggregate — one query instead of one per product.
+        // Batch stock for current page only (no N+1)
         $stockMap = StockMovement::whereIn('product_id', $products->pluck('id'))
             ->groupBy('product_id')
             ->selectRaw('product_id, SUM(quantity) as total')
             ->pluck('total', 'product_id');
 
-        return view('admin.Products.index', compact('products', 'users', 'companies', 'stockMap'));
+        return view('admin.Products.index',
+            compact('products', 'users', 'companies', 'stockMap', 'forms', 'orderBy', 'direction', 'perPage'));
     }
 
     // ─── Export ───────────────────────────────────────────────────────────────

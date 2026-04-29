@@ -1,6 +1,16 @@
 ﻿@extends('layouts.app')
 @section('title', __('admin.payment_title'))
 @section('content')
+@php
+$sortIcon = fn($col) => $orderBy === $col
+    ? ($direction === 'asc' ? 'bi-sort-up-alt' : 'bi-sort-down-alt')
+    : 'bi-arrow-down-up opacity-25';
+$sortUrl = fn($col) => request()->fullUrlWithQuery([
+    'order_by'  => $col,
+    'direction' => ($orderBy === $col && $direction === 'asc') ? 'desc' : 'asc',
+    'page'      => 1,
+]);
+@endphp
 <div class="container-fluid">
 
     {{-- ── Page header ───────────────────────────────────────────────────── --}}
@@ -27,6 +37,7 @@
     <div class="card shadow mb-4">
         <div class="card-body py-3">
             <form action="{{ route('admin.payments.index') }}" method="GET" class="row g-2 align-items-end">
+                <input type="hidden" name="per_page" value="{{ $perPage }}">
                 <div class="col-md-3">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('pharmacy') }}</label>
                     <select name="pharmacy_id" class="form-select form-select-sm">
@@ -79,9 +90,21 @@
                             <th class="ps-4">#</th>
                             <th>{{ \App\Helpers\Helpers::translate('pharmacy') }}</th>
                             <th>{{ \App\Helpers\Helpers::translate('order_number') }}</th>
-                            <th>{{ __('admin.payment_amount') }}</th>
-                            <th>{{ __('admin.payment_method_lbl') }}</th>
-                            <th>{{ __('admin.payment_paid_at') }}</th>
+                            <th>
+                                <a href="{{ $sortUrl('amount') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ __('admin.payment_amount') }} <i class="bi {{ $sortIcon('amount') }} small"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortUrl('method') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ __('admin.payment_method_lbl') }} <i class="bi {{ $sortIcon('method') }} small"></i>
+                                </a>
+                            </th>
+                            <th>
+                                <a href="{{ $sortUrl('paid_at') }}" class="text-dark text-decoration-none d-flex align-items-center gap-1">
+                                    {{ __('admin.payment_paid_at') }} <i class="bi {{ $sortIcon('paid_at') }} small"></i>
+                                </a>
+                            </th>
                             <th>{{ \App\Helpers\Helpers::translate('created_by') }}</th>
                         </tr>
                     </thead>
@@ -134,7 +157,22 @@
             </div>
         </div>
         @if($payments->hasPages())
-        <div class="card-footer d-flex justify-content-end">{{ $payments->links() }}</div>
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <form method="GET" action="{{ route('admin.payments.index') }}" class="d-flex align-items-center gap-2">
+                @foreach(request()->except(['page','per_page','order_by','direction']) as $k => $v)
+                    @if($v !== '' && $v !== null)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endif
+                @endforeach
+                <input type="hidden" name="order_by" value="{{ $orderBy }}">
+                <input type="hidden" name="direction" value="{{ $direction }}">
+                <label class="text-muted small mb-0">{{ __('admin.per_page') }}</label>
+                <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    @foreach([10,20,50,100] as $n)
+                        <option value="{{ $n }}" {{ $perPage == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </select>
+            </form>
+            <div>{{ $payments->links() }}</div>
+        </div>
         @endif
     </div>
 

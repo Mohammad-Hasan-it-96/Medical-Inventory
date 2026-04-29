@@ -13,17 +13,23 @@ class OrderController extends Controller
     public function __construct(protected OrderService $orderService) {}
     public function index(Request $request)
     {
-        $query = Order::with(['pharmacy', 'rep'])->latest();
+        $sortable  = ['created_at', 'total', 'status', 'order_number'];
+        $orderBy   = in_array($request->input('order_by'), $sortable) ? $request->input('order_by') : 'created_at';
+        $direction = $request->input('direction') === 'asc' ? 'asc' : 'desc';
+        $perPage   = in_array((int) $request->input('per_page', 20), [10, 20, 50, 100])
+            ? (int) $request->input('per_page', 20) : 20;
+
+        $query = Order::with(['pharmacy', 'rep'])->orderBy($orderBy, $direction);
         if ($request->filled('search'))      $query->where('order_number', 'like', '%'.$request->input('search').'%');
         if ($request->filled('status'))      $query->where('status', $request->input('status'));
         if ($request->filled('rep_id'))      $query->where('rep_id', $request->input('rep_id'));
         if ($request->filled('pharmacy_id')) $query->where('pharmacy_id', $request->input('pharmacy_id'));
         if ($request->filled('date_from'))   $query->whereDate('created_at', '>=', $request->input('date_from'));
         if ($request->filled('date_to'))     $query->whereDate('created_at', '<=', $request->input('date_to'));
-        $orders     = $query->paginate(20)->withQueryString();
-        $reps       = User::where('role', 'rep')->orderBy('name')->get();
-        $pharmacies = Pharmacy::orderBy('name')->get();
-        return view('admin.orders.index', compact('orders', 'reps', 'pharmacies'));
+        $orders     = $query->paginate($perPage)->withQueryString();
+        $reps       = User::where('role', 'rep')->orderBy('name')->get(['id','name']);
+        $pharmacies = Pharmacy::orderBy('name')->get(['id','name']);
+        return view('admin.orders.index', compact('orders', 'reps', 'pharmacies', 'orderBy', 'direction', 'perPage'));
     }
     public function show(Order $order)
     {
