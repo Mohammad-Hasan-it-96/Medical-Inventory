@@ -43,13 +43,22 @@ class StockMovementController extends Controller
             'notes'      => 'nullable|string|max:500',
         ]);
         try {
-            $this->stockService->recordMovement([
+            $movement = $this->stockService->recordMovement([
                 'product_id' => $data['product_id'],
                 'type'       => StockMovement::TYPE_ADJUSTMENT,
                 'quantity'   => $data['quantity'],
                 'notes'      => $data['notes'] ?? null,
                 'created_by' => auth()->id(),
             ]);
+
+            $productName = Product::find($data['product_id'])?->name ?? "#{$data['product_id']}";
+            activity('stock_movements')
+                ->causedBy(auth()->user())
+                ->performedOn($movement)
+                ->event('adjusted')
+                ->withProperties(['quantity' => $data['quantity'], 'notes' => $data['notes'] ?? null])
+                ->log("Stock adjusted for '{$productName}': {$data['quantity']}");
+
             return redirect()->route('admin.stock-movements.index')
                 ->with('success', __('messages.adjustment_created'));
         } catch (ValidationException $e) {

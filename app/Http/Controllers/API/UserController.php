@@ -73,6 +73,12 @@ class UserController extends BaseController
 
         $user->save();
 
+        activity('users')
+            ->causedBy(auth()->user())
+            ->performedOn($user)
+            ->event('updated')
+            ->log("User '{$user->name}' was updated");
+
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully');
     }
 
@@ -97,6 +103,11 @@ class UserController extends BaseController
         }
 
         $user->delete();
+
+        activity('users')
+            ->causedBy(auth()->user())
+            ->event('deleted')
+            ->log("User '{$user->name}' (#{$user->id}) was deleted");
 
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully');
     }
@@ -138,6 +149,12 @@ public function store(Request $request)
     }
 
     $user->save();
+
+    activity('users')
+        ->causedBy(auth()->user())
+        ->performedOn($user)
+        ->event('created')
+        ->log("User '{$user->name}' was created with role '{$user->role}'");
 
     return redirect()->route('admin.users.index')->with('success', 'User created successfully');
 }

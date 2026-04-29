@@ -116,5 +116,27 @@ return [
     'placeholder_name_phone_area' => 'الاسم / الهاتف / المنطقة…',
     'order_number_search'         => 'رقم الطلب…',
     'placeholder_address'         => 'العنوان',
+
+    // ── سجل النشاط ──────────────────────────────────────────────────────────
+    'activity_log_title'     => 'سجل النشاط',
+    'activity_log_user'      => 'المستخدم',
+    'activity_log_event'     => 'الحدث',
+    'activity_log_subject'   => 'الموضوع',
+    'activity_log_desc'      => 'الوصف',
+    'activity_log_date'      => 'التاريخ',
+    'activity_log_all_users' => 'كل المستخدمين',
+    'activity_log_all_types' => 'كل الأنواع',
+    'activity_log_all_events'=> 'كل الأحداث',
+    'activity_log_empty'     => 'لا توجد سجلات نشاط.',
+    'activity_log_system'    => 'النظام',
+    'activity_event' => [
+        'created'       => 'إنشاء',
+        'updated'       => 'تعديل',
+        'deleted'       => 'حذف',
+        'confirmed'     => 'تأكيد',
+        'cancelled'     => 'إلغاء',
+        'adjusted'      => 'تسوية',
+        'price_changed' => 'تغيير السعر',
+    ],
 ];
 

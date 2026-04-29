@@ -107,7 +107,16 @@ class OrderService
             $totals = $this->calculateTotals($order->load('orderItems'));
             $order->update($totals);
 
-            return $order->fresh(['orderItems']);
+            $fresh = $order->fresh(['orderItems']);
+
+            activity('orders')
+                ->causedBy(auth()->user())
+                ->performedOn($fresh)
+                ->event('created')
+                ->withProperties(['total' => $fresh->total, 'items' => $fresh->orderItems->count()])
+                ->log("Order '{$fresh->order_number}' was created");
+
+            return $fresh;
         });
     }
 

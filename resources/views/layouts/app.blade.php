@@ -414,6 +414,14 @@
                     </div>
                     @endif
 
+                    <!-- Activity Log - Admin only -->
+                    @if(Auth::user()->role === 'admin')
+                    <a href="{{ route('admin.activity-logs.index') }}" class="nav-link d-flex align-items-center py-3 px-3 rounded-3 mb-1 {{ request()->routeIs('admin.activity-logs.*') ? 'active' : '' }}">
+                        <i class="bi bi-clock-history me-3"></i>
+                        <span>{{ __('admin.activity_log_title') }}</span>
+                    </a>
+                    @endif
+
                     <!-- Languages Dropdown -->
                     <div class="sidebar-item mb-1">
                         <button class="nav-link d-flex align-items-center justify-content-between w-100 py-3 px-3 rounded-3 border-0 bg-transparent {{ request()->routeIs('admin.languages.*') ? 'active' : '' }}"

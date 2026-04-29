@@ -43,6 +43,13 @@ class OrderController extends Controller
         }
         try {
             $this->orderService->confirmOrder($order, auth()->id());
+
+            activity('orders')
+                ->causedBy(auth()->user())
+                ->performedOn($order)
+                ->event('confirmed')
+                ->log("Order '{$order->order_number}' was confirmed");
+
             return redirect()->route('admin.orders.show', $order)
                 ->with('success', __('messages.order_confirmed'));
         } catch (ValidationException $e) {
@@ -62,6 +69,13 @@ class OrderController extends Controller
         }
         try {
             $this->orderService->cancelOrder($order, auth()->id());
+
+            activity('orders')
+                ->causedBy(auth()->user())
+                ->performedOn($order)
+                ->event('cancelled')
+                ->log("Order '{$order->order_number}' was cancelled");
+
             return redirect()->route('admin.orders.show', $order)
                 ->with('success', __('messages.order_cancelled'));
         } catch (ValidationException $e) {

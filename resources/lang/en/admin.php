@@ -116,5 +116,27 @@ return [
     'placeholder_name_phone_area' => 'Name / phone / area…',
     'order_number_search'         => 'Order number…',
     'placeholder_address' => 'address',
+
+    // ── Activity Log ────────────────────────────────────────────────────────
+    'activity_log_title'     => 'Activity Log',
+    'activity_log_user'      => 'User',
+    'activity_log_event'     => 'Event',
+    'activity_log_subject'   => 'Subject',
+    'activity_log_desc'      => 'Description',
+    'activity_log_date'      => 'Date',
+    'activity_log_all_users' => 'All users',
+    'activity_log_all_types' => 'All types',
+    'activity_log_all_events'=> 'All events',
+    'activity_log_empty'     => 'No activity records found.',
+    'activity_log_system'    => 'System',
+    'activity_event' => [
+        'created'       => 'Created',
+        'updated'       => 'Updated',
+        'deleted'       => 'Deleted',
+        'confirmed'     => 'Confirmed',
+        'cancelled'     => 'Cancelled',
+        'adjusted'      => 'Adjusted',
+        'price_changed' => 'Price Changed',
+    ],
 ];
 

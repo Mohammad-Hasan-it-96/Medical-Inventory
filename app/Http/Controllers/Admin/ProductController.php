@@ -190,6 +190,12 @@ class ProductController extends Controller
             'public_price_syp' => $validated['public_price_syp'],
         ]);
 
+        activity('products')
+            ->causedBy(Auth::user())
+            ->performedOn($product)
+            ->event('created')
+            ->log("Product '{$product->name}' was created");
+
         return redirect()
             ->route('admin.products.index')
             ->with('success', \App\Helpers\Helpers::translate('product_created'));
@@ -216,6 +222,7 @@ class ProductController extends Controller
 
         $product->update(Arr::except($validated, ['net_price_syp', 'public_price_syp']));
 
+        $oldPrice = $product->productPrice?->net_price_syp;
         $product->productPrice()->updateOrCreate(
             ['product_id' => $product->id],
             [
@@ -223,6 +230,18 @@ class ProductController extends Controller
                 'public_price_syp' => $validated['public_price_syp'],
             ]
         );
+
+        $priceChanged = $oldPrice !== null && (float) $oldPrice !== (float) $validated['net_price_syp'];
+        $eventLabel   = $priceChanged ? 'price_changed' : 'updated';
+        $description  = $priceChanged
+            ? "Product '{$product->name}' price changed from {$oldPrice} to {$validated['net_price_syp']}"
+            : "Product '{$product->name}' was updated";
+
+        activity('products')
+            ->causedBy(Auth::user())
+            ->performedOn($product)
+            ->event($eventLabel)
+            ->log($description);
 
         return redirect()
             ->route('admin.products.index')
@@ -236,7 +255,13 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
         $this->authorizeProductAction($product, 'delete');
 
+        $productName = $product->name;
         $product->delete();
+
+        activity('products')
+            ->causedBy(Auth::user())
+            ->event('deleted')
+            ->log("Product '{$productName}' was deleted");
 
         return redirect()
             ->route('admin.products.index')

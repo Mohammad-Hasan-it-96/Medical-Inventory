@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\CompanyController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PaymentController;
@@ -142,4 +143,9 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin', 'as' => 'admin.'], fu
         Route::get('create',    [PaymentController::class, 'create'])->name('create');
         Route::post('store',    [PaymentController::class, 'store'])->name('store');
     });
+
+    // ── Activity Logs ─────────────────────────────────────────────────────────
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])
+        ->name('activity-logs.index')
+        ->middleware('admin');
 });

@@ -101,7 +101,16 @@ class PaymentService
                 'created_by'  => $userId,
             ]);
 
-            return $payment->load(['pharmacy', 'order']);
+            $result = $payment->load(['pharmacy', 'order']);
+
+            activity('payments')
+                ->causedBy(auth()->user())
+                ->performedOn($payment)
+                ->event('created')
+                ->withProperties(['amount' => $payment->amount, 'method' => $payment->method])
+                ->log("Payment of {$payment->amount} via {$payment->method} recorded for pharmacy #{$payment->pharmacy_id}");
+
+            return $result;
         });
     }
 }

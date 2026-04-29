@@ -47,7 +47,14 @@ class PharmacyController extends Controller
             'notes'           => 'nullable|string',
         ]);
         $v['is_active'] = $request->boolean('is_active', true);
-        Pharmacy::create($v);
+        $pharmacy = Pharmacy::create($v);
+
+        activity('pharmacies')
+            ->causedBy(auth()->user())
+            ->performedOn($pharmacy)
+            ->event('created')
+            ->log("Pharmacy '{$pharmacy->name}' was created");
+
         return redirect()->route('admin.pharmacies.index')->with('success', __('pharmacies.messages.created'));
     }
     public function show(Pharmacy $pharmacy)
@@ -111,13 +118,27 @@ class PharmacyController extends Controller
         ]);
         $v['is_active'] = $request->boolean('is_active');
         $pharmacy->update($v);
+
+        activity('pharmacies')
+            ->causedBy(auth()->user())
+            ->performedOn($pharmacy)
+            ->event('updated')
+            ->log("Pharmacy '{$pharmacy->name}' was updated");
+
         return redirect()->route('admin.pharmacies.index')->with('success', __('pharmacies.messages.updated'));
     }
     public function destroy(Pharmacy $pharmacy)
     {
         $this->authorize('delete', $pharmacy);
 
+        $pharmacyName = $pharmacy->name;
         $pharmacy->delete();
+
+        activity('pharmacies')
+            ->causedBy(auth()->user())
+            ->event('deleted')
+            ->log("Pharmacy '{$pharmacyName}' was deleted");
+
         return redirect()->route('admin.pharmacies.index')->with('success', __('pharmacies.messages.deleted'));
     }
 }

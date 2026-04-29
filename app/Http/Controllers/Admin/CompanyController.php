@@ -55,7 +55,13 @@ class CompanyController extends Controller
 
         $validated['is_active'] = $request->boolean('is_active', true);
 
-        Company::create($validated);
+        $company = Company::create($validated);
+
+        activity('companies')
+            ->causedBy(auth()->user())
+            ->performedOn($company)
+            ->event('created')
+            ->log("Company '{$company->name}' was created");
 
         return redirect()->route('admin.companies.index')
             ->with('success', \App\Helpers\Helpers::translate('company_created'));
@@ -80,13 +86,25 @@ class CompanyController extends Controller
 
         $company->update($validated);
 
+        activity('companies')
+            ->causedBy(auth()->user())
+            ->performedOn($company)
+            ->event('updated')
+            ->log("Company '{$company->name}' was updated");
+
         return redirect()->route('admin.companies.index')
             ->with('success', \App\Helpers\Helpers::translate('company_updated'));
     }
 
     public function destroy(Company $company)
     {
+        $companyName = $company->name;
         $company->delete();
+
+        activity('companies')
+            ->causedBy(auth()->user())
+            ->event('deleted')
+            ->log("Company '{$companyName}' was deleted");
 
         return redirect()->route('admin.companies.index')
             ->with('success', \App\Helpers\Helpers::translate('company_deleted'));
