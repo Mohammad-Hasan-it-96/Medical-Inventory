@@ -10,6 +10,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Foundation\Application;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -48,6 +49,18 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 401);
             }
             return redirect()->guest(route('auth.login'));
+        });
+
+        // 422 Validation ─ API: JSON envelope with field errors │ Web: default redirect-back
+        $exceptions->render(function (ValidationException $e, $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'data'    => $e->errors(),
+                ], 422);
+            }
+            return null; // let Laravel handle web validation (redirect back with errors)
         });
 
         // 403 Forbidden ─ API: JSON envelope │ Web: 403 view
