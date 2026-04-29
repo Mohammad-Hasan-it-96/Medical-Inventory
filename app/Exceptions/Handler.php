@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -29,11 +30,24 @@ class Handler extends ExceptionHandler
             //
         });
 
+        // 401 Unauthenticated — always return JSON envelope for API requests
+        $this->renderable(function (AuthenticationException $e, $request) {
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated.',
+                ], 401);
+            }
+            // Non-API requests fall through to Authenticate::redirectTo()
+            return null;
+        });
+
         // Custom rendering for AccessDeniedHttpException
         $this->renderable(function (AccessDeniedHttpException $e, $request) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
-                    'message' => $e->getMessage() ?: 'Unauthorized action.'
+                    'success' => false,
+                    'message' => $e->getMessage() ?: 'Forbidden.',
                 ], 403);
             }
 
@@ -42,9 +56,10 @@ class Handler extends ExceptionHandler
 
         // Custom rendering for NotFoundHttpException
         $this->renderable(function (NotFoundHttpException $e, $request) {
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $request->is('api/*')) {
                 return response()->json([
-                    'message' => 'Resource not found.'
+                    'success' => false,
+                    'message' => 'Resource not found.',
                 ], 404);
             }
 

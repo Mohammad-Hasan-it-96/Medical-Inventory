@@ -88,6 +88,7 @@ class OrderController extends BaseController
     {
         $data = $request->validate([
             'pharmacy_id'           => 'required|integer|exists:pharmacies,id',
+            'rep_id'                => 'nullable|integer|exists:users,id',
             'discount'              => 'nullable|numeric|min:0',
             'notes'                 => 'nullable|string|max:1000',
             'items'                 => 'required|array|min:1',

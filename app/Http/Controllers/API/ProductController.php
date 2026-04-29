@@ -45,10 +45,10 @@ class ProductController extends BaseController
         }
 
         $validator = Validator::make($request->all(), [
-            'name'     => 'required|string|max:255',
-            'price'    => 'required|numeric|min:0',
-            'details'  => 'required|string',
-            'quantity' => 'required|integer|min:0',
+            'name'    => 'required|string|max:255',
+            'price'   => 'required|numeric|min:0',
+            'details' => 'required|string',
+            // 'quantity' intentionally omitted — stock is tracked via stock_movements, not products.quantity
         ]);
 
         if ($validator->fails()) {
@@ -98,10 +98,10 @@ class ProductController extends BaseController
         }
 
         $validator = Validator::make($request->all(), [
-            'name'     => 'required|string|max:255',
-            'price'    => 'required|numeric|min:0',
-            'details'  => 'required|string',
-            'quantity' => 'required|integer|min:0',
+            'name'    => 'required|string|max:255',
+            'price'   => 'required|numeric|min:0',
+            'details' => 'required|string',
+            // 'quantity' intentionally omitted — stock is tracked via stock_movements, not products.quantity
         ]);
 
         if ($validator->fails()) {
