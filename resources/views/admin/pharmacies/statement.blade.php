@@ -69,6 +69,7 @@
         <div class="card-body py-3">
             <form action="{{ route('admin.pharmacies.statement', $pharmacy) }}" method="GET"
                   class="row g-2 align-items-end">
+                <input type="hidden" name="per_page" value="{{ $perPage ?? 20 }}">
                 <div class="col-md-3">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('date_from') }}</label>
                     <input type="date" name="date_from" class="form-control form-control-sm"
@@ -161,7 +162,20 @@
             </div>
         </div>
         @if($entries->hasPages())
-        <div class="card-footer d-flex justify-content-end">{{ $entries->links() }}</div>
+        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <form method="GET" action="{{ route('admin.pharmacies.statement', $pharmacy) }}" class="d-flex align-items-center gap-2">
+                @foreach(request()->except(['page','per_page']) as $k => $v)
+                    @if($v !== '' && $v !== null)<input type="hidden" name="{{ $k }}" value="{{ $v }}">@endif
+                @endforeach
+                <label class="text-muted small mb-0">{{ __('admin.per_page') }}</label>
+                <select name="per_page" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                    @foreach([10,20,50,100] as $n)
+                        <option value="{{ $n }}" {{ ($perPage ?? 20) == $n ? 'selected' : '' }}>{{ $n }}</option>
+                    @endforeach
+                </select>
+            </form>
+            <div>{{ $entries->links() }}</div>
+        </div>
         @endif
     </div>
 

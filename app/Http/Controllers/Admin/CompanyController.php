@@ -24,6 +24,11 @@ class CompanyController extends Controller
                   ->orWhere('phone', 'like', "%{$search}%")
             );
         }
+        if ($search = $request->input('search_by_region')) {
+            $query->where(fn($q) =>
+                $q->where('address', 'like', "%{$search}%")
+            );
+        }
         if ($request->filled('status')) {
             $query->where('is_active', $request->input('status'));
         }

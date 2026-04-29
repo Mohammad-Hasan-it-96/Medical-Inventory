@@ -372,4 +372,5 @@ return [
     'default_currency' => 'Default Currency', // Added
     'tax_rate' => 'Tax Rate (%)', // Added
     'shipping_fee' => 'Shipping Fee', // Added
+    'search_by_region' => 'Search By Region',
 ];

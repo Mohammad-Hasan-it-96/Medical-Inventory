@@ -115,5 +115,6 @@ return [
     'placeholder_name_phone'      => 'Name or phone…',
     'placeholder_name_phone_area' => 'Name / phone / area…',
     'order_number_search'         => 'Order number…',
+    'placeholder_address' => 'address',
 ];
 

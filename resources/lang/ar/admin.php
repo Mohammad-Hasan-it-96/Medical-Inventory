@@ -115,5 +115,6 @@ return [
     'placeholder_name_phone'      => 'الاسم أو الهاتف…',
     'placeholder_name_phone_area' => 'الاسم / الهاتف / المنطقة…',
     'order_number_search'         => 'رقم الطلب…',
+    'placeholder_address'         => 'العنوان',
 ];
 

@@ -370,6 +370,7 @@ return [
     'modal_title_add_config' => 'إضافة إعداد جديد',
     'modal_title_add_config_to_group' => 'إضافة إعداد للمجموعة',
     'dashboard_type' => 'نوع لوحة التحكم',
+    'search_by_region' => 'البحث حسب المنطقة',
 
 
 ];

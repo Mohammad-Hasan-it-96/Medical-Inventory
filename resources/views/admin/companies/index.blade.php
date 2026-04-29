@@ -29,11 +29,15 @@ $sortUrl = fn($col) => request()->fullUrlWithQuery([
         <div class="card-body py-3">
             <form action="{{ route('admin.companies.index') }}" method="GET" class="row g-2 align-items-end">
                 <input type="hidden" name="per_page" value="{{ $perPage }}">
-                <div class="col-md-5">
+                <div class="col-md-3">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('search') }}</label>
                     <input type="text" name="search" class="form-control form-control-sm" value="{{ request('search') }}" placeholder="{{ __('admin.placeholder_name_phone') }}">
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label small">{{ \App\Helpers\Helpers::translate('search_by_region') }}</label>
+                    <input type="text" name="search_by_region" class="form-control form-control-sm" value="{{ request('search_by_region') }}" placeholder="{{ __('admin.placeholder_address') }}">
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small">{{ \App\Helpers\Helpers::translate('status') }}</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="">{{ \App\Helpers\Helpers::translate('all') }}</option>
